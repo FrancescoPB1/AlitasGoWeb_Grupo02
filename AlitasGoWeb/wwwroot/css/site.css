@@ -1,0 +1,106 @@
+
+:root {
+    --ag-primary: #FF6B35;
+    --ag-primary-dark: #E55A2B;
+    --ag-secondary: #F7931E;
+    --ag-dark: #1A1A1A;
+    --ag-bg: #F5F5F5;
+}
+
+body {
+    background-color: var(--ag-bg);
+}
+
+.navbar.bg-dark {
+    background-color: var(--ag-dark) !important;
+}
+
+.navbar-brand {
+    color: var(--ag-secondary) !important;
+}
+
+.navbar-brand:hover,
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+    color: var(--ag-primary) !important;
+}
+
+.navbar-nav .nav-link.active {
+    font-weight: 600;
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--ag-primary);
+    background-color: var(--ag-primary);
+    border-color: var(--ag-primary);
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: var(--ag-primary-dark);
+    border-color: var(--ag-primary-dark);
+}
+
+.btn-primary:focus,
+.btn-primary:active:focus {
+    box-shadow: 0 0 0 0.25rem rgba(255, 107, 53, 0.4);
+}
+
+.btn-outline-primary {
+    color: var(--ag-primary);
+    border-color: var(--ag-primary);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--ag-primary);
+    border-color: var(--ag-primary);
+    color: #fff;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--ag-primary);
+    box-shadow: 0 0 0 0.25rem rgba(255, 107, 53, 0.25);
+}
+
+.card {
+    border: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.table thead th {
+    background-color: var(--ag-dark);
+    color: #fff;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 0;
+    white-space: nowrap;
+}
+
+.table > :not(:first-child) {
+    border-top: 0; 
+}
+
+
+.acciones {
+    white-space: nowrap;
+}
+
+
+.page-header h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+
+@media (max-width: 575.98px) {
+    .table {
+        font-size: 0.875rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.25rem;
+    }
+}

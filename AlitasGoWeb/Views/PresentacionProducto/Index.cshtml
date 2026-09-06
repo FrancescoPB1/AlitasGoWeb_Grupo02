@@ -1,0 +1,140 @@
+@model IEnumerable<PresentacionProducto>
+@{
+    Producto? producto = ViewBag.Producto as Producto;
+    bool porProducto = producto != null;
+    ViewData["Title"] = porProducto ? $"Presentaciones · {producto!.Nombre}" : "Presentaciones";
+    var total = Model.Count();
+}
+
+@if (porProducto)
+{
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-controller="Producto" asp-action="Index">Productos</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@producto!.Nombre</li>
+        </ol>
+    </nav>
+}
+
+<div class="page-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+    <div>
+        <h1 class="h3"><i class="bi bi-box2" aria-hidden="true"></i> Presentaciones</h1>
+        @if (porProducto)
+        {
+            <p class="text-muted mb-0">Precios y tamaños de <strong>@producto!.Nombre</strong>.</p>
+        }
+        else
+        {
+            <p class="text-muted mb-0">Todas las presentaciones (precios y tamaños) del catálogo.</p>
+        }
+    </div>
+    <div class="d-grid d-sm-block">
+        @if (porProducto)
+        {
+            <a asp-action="Create" asp-route-idProducto="@producto!.IdProducto" class="btn btn-primary">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> Nueva presentación
+            </a>
+        }
+        else
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> Nueva presentación
+            </a>
+        }
+    </div>
+</div>
+
+<div class="card">
+    @if (!Model.Any())
+    {
+        <div class="card-body text-center py-5 text-muted">
+            <i class="bi bi-box2 display-5 d-block mb-2" aria-hidden="true"></i>
+            <p class="mb-3">
+                @(porProducto ? "Este producto todavía no tiene presentaciones." : "Aún no hay presentaciones registradas.")
+            </p>
+            @if (porProducto)
+            {
+                <a asp-action="Create" asp-route-idProducto="@producto!.IdProducto" class="btn btn-outline-primary">Crear la primera</a>
+            }
+            else
+            {
+                <a asp-action="Create" class="btn btn-outline-primary">Crear la primera</a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">Listado</span>
+            <span class="badge bg-secondary">@total</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="d-none d-lg-table-cell" style="width:5rem">ID</th>
+                        @if (!porProducto)
+                        {
+                            <th class="d-none d-md-table-cell">Producto</th>
+                        }
+                        <th>Presentación</th>
+                        <th class="text-end d-none d-sm-table-cell">Cantidad</th>
+                        <th class="text-end">Precio</th>
+                        <th class="d-none d-sm-table-cell" style="width:7rem">Estado</th>
+                        <th class="text-end" style="width:8rem">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr class="@(item.Activo ? "" : "text-muted")">
+                            <td class="d-none d-lg-table-cell text-muted">@item.IdPresentacion</td>
+                            @if (!porProducto)
+                            {
+                                <td class="d-none d-md-table-cell">@(item.Producto?.Nombre ?? "—")</td>
+                            }
+                            <td>
+                                <div class="fw-semibold">@item.NombrePresentacion</div>
+                                <div class="small text-muted d-sm-none">
+                                    @if (!porProducto) { <span>@(item.Producto?.Nombre ?? "—") · </span> }
+                                    @item.CantidadUnidad.ToString("0.##") ud.
+                                    @if (!item.Activo) { <span class="badge bg-secondary ms-1">Inactivo</span> }
+                                </div>
+                            </td>
+                            <td class="text-end d-none d-sm-table-cell">@item.CantidadUnidad.ToString("0.##")</td>
+                            <td class="text-end fw-semibold text-success text-nowrap">S/ @item.Precio.ToString("N2")</td>
+                            <td class="d-none d-sm-table-cell">
+                                @if (item.Activo)
+                                {
+                                    <span class="badge bg-success">Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                }
+                            </td>
+                            <td class="text-end acciones">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Acciones">
+                                    <a asp-action="Edit" asp-route-id="@item.IdPresentacion"
+                                       asp-route-desdeProducto="@porProducto"
+                                       class="btn btn-outline-secondary" title="Editar">
+                                        <i class="bi bi-pencil" aria-hidden="true"></i>
+                                        <span class="d-none d-md-inline">Editar</span>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" title="Eliminar"
+                                            data-bs-toggle="modal" data-bs-target="#modalEliminar"
+                                            data-url="@Url.Action("Delete", new { id = item.IdPresentacion, desdeProducto = porProducto })"
+                                            data-nombre="la presentación «@item.NombrePresentacion»"
+                                            data-detalle="Esta acción no se puede deshacer.">
+                                        <i class="bi bi-trash3" aria-hidden="true"></i>
+                                        <span class="d-none d-md-inline">Eliminar</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

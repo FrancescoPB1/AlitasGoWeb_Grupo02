@@ -1,0 +1,83 @@
+@model IEnumerable<CategoriaProducto>
+@{
+    ViewData["Title"] = "Categorías";
+    var total = Model.Count();
+}
+
+<div class="page-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+    <div>
+        <h1 class="h3"><i class="bi bi-tags" aria-hidden="true"></i> Categorías</h1>
+        <p class="text-muted mb-0">Agrupan los productos del menú (Alitas, Bebidas, Complementos…).</p>
+    </div>
+    <div class="d-grid d-sm-block">
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> Nueva categoría
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    @if (!Model.Any())
+    {
+        <div class="card-body text-center py-5 text-muted">
+            <i class="bi bi-tags display-5 d-block mb-2" aria-hidden="true"></i>
+            <p class="mb-3">Aún no hay categorías registradas.</p>
+            <a asp-action="Create" class="btn btn-outline-primary">Crear la primera</a>
+        </div>
+    }
+    else
+    {
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">Listado</span>
+            <span class="badge bg-secondary">@total</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="d-none d-lg-table-cell" style="width:5rem">ID</th>
+                        <th>Nombre</th>
+                        <th style="width:7rem">Estado</th>
+                        <th class="text-end" style="width:8rem">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in Model)
+                    {
+                        <tr>
+                            <td class="d-none d-lg-table-cell text-muted">@c.IdCategoriaProducto</td>
+                            <td class="fw-semibold">@c.Nombre</td>
+                            <td>
+                                @if (c.Activo)
+                                {
+                                    <span class="badge bg-success">Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                }
+                            </td>
+                            <td class="text-end acciones">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Acciones">
+                                    <a asp-action="Edit" asp-route-id="@c.IdCategoriaProducto"
+                                       class="btn btn-outline-secondary" title="Editar">
+                                        <i class="bi bi-pencil" aria-hidden="true"></i>
+                                        <span class="d-none d-md-inline">Editar</span>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" title="Eliminar"
+                                            data-bs-toggle="modal" data-bs-target="#modalEliminar"
+                                            data-url="@Url.Action("Delete", new { id = c.IdCategoriaProducto })"
+                                            data-nombre="la categoría «@c.Nombre»"
+                                            data-detalle="La categoría se marcará como inactiva.">
+                                        <i class="bi bi-trash3" aria-hidden="true"></i>
+                                        <span class="d-none d-md-inline">Eliminar</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

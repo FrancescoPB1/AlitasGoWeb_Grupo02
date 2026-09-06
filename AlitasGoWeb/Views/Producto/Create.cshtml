@@ -1,0 +1,76 @@
+@model Producto
+@{
+    bool isEdit = ViewBag.IsEdit ?? false;
+    ViewData["Title"] = isEdit ? "Editar producto" : "Nuevo producto";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-9 col-lg-7">
+
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a asp-action="Index">Productos</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-header bg-white">
+                <h1 class="h5 mb-0"><i class="bi bi-box-seam" aria-hidden="true"></i> @ViewData["Title"]</h1>
+            </div>
+            <div class="card-body">
+                <form asp-action="@(isEdit ? "Edit" : "Create")" method="post" data-una-vez novalidate>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+
+                    @if (isEdit)
+                    {
+                        <input type="hidden" asp-for="IdProducto" />
+                        <input type="hidden" asp-for="Activo" />
+                    }
+
+                    <div class="mb-3">
+                        <label asp-for="Nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+                        <input asp-for="Nombre" class="form-control" placeholder="Ej: Alitas BBQ" autofocus />
+                        <span asp-validation-for="Nombre" class="invalid-feedback d-block"></span>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-sm-6">
+                            <label asp-for="IdCategoriaProducto" class="form-label">Categoría <span class="text-danger">*</span></label>
+                            <select asp-for="IdCategoriaProducto" asp-items="ViewBag.CategoriaProductos" class="form-select">
+                                <option value="">— Selecciona —</option>
+                            </select>
+                            <span asp-validation-for="IdCategoriaProducto" class="invalid-feedback d-block"></span>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label asp-for="IdTipoProducto" class="form-label">Tipo <span class="text-danger">*</span></label>
+                            <select asp-for="IdTipoProducto" asp-items="ViewBag.TipoProductos" class="form-select">
+                                <option value="">— Selecciona —</option>
+                            </select>
+                            <span asp-validation-for="IdTipoProducto" class="invalid-feedback d-block"></span>
+                        </div>
+                    </div>
+
+                    <div class="my-3">
+                        <label asp-for="Descripcion" class="form-label">Descripción <span class="text-muted fw-normal">(opcional)</span></label>
+                        <textarea asp-for="Descripcion" class="form-control" rows="3" placeholder="Detalles del producto…"></textarea>
+                        <span asp-validation-for="Descripcion" class="invalid-feedback d-block"></span>
+                        <div class="form-text">Máximo 255 caracteres.</div>
+                    </div>
+
+                    <div class="d-flex flex-column-reverse flex-sm-row justify-content-between gap-2">
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg" aria-hidden="true"></i>
+                            @(isEdit ? "Guardar cambios" : "Crear producto")
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
