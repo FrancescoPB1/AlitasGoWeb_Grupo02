@@ -16,5 +16,8 @@ namespace AlitasGoWeb.Models
 
         [Display(Name = "Activo")]
         public bool Activo { get; set; }
+
+        // Navegación: Una categoría tiene muchos productos
+        public virtual ICollection<Producto> Productos { get; set; } = new List<Producto>();
     }
 }

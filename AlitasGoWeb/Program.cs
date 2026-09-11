@@ -19,17 +19,17 @@ builder.Services.AddDbContext<AlitasGoDbContext>(options =>
 );
 
 
-builder.Services.AddScoped<ICategoriaProductoRepository, CategoriaProductoRepository>();
-builder.Services.AddScoped<ICategoriaProductoService, CategoriaProductoService>();
+//builder.Services.AddScoped<ICategoriaProductoRepository, CategoriaProductoRepository>();
+//builder.Services.AddScoped<ICategoriaProductoService, CategoriaProductoService>();
 
-builder.Services.AddScoped<ITipoProductoRepository, TipoProductoRepository>();
-builder.Services.AddScoped<ITipoProductoService, TipoProductoService>();
+////builder.Services.AddScoped<ITipoProductoRepository, TipoProductoRepository>();
+//builder.Services.AddScoped<ITipoProductoService, TipoProductoService>();
 
-builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
-builder.Services.AddScoped<IProductoService, ProductoService>();
+//builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
+//builder.Services.AddScoped<IProductoService, ProductoService>();
 
-builder.Services.AddScoped<IPresentacionProductoRepository, PresentacionProductoRepository>();
-builder.Services.AddScoped<IPresentacionProductoService, PresentacionProductoService>();
+//builder.Services.AddScoped<IPresentacionProductoRepository, PresentacionProductoRepository>();
+//builder.Services.AddScoped<IPresentacionProductoService, PresentacionProductoService>();
 
 builder.Services.AddControllersWithViews(options =>
 {

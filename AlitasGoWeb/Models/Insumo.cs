@@ -8,15 +8,20 @@ namespace AlitasGoWeb.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IdInsumo { get; set; }
-        [Required]
+
+        [Required, StringLength(120)]
         public string Nombre { get; set; } = string.Empty;
-        [Required]
-        [StringLength(20)]
+
+        [Required, StringLength(20)]
         public string UnidadMedida { get; set; } = string.Empty;
+
         [Column(TypeName = "decimal(18,2)")]
         public decimal StockActual { get; set; }
+
         [Column(TypeName = "decimal(18,2)")]
         public decimal StockMinimo { get; set; }
-        public bool Activo { get; set; }
+
+        public virtual ICollection<Receta> ProductoInsumos { get; set; } = new List<Receta>();
+        public virtual ICollection<DetalleCompraInsumo> DetallesCompra { get; set; } = new List<DetalleCompraInsumo>();
     }
 }

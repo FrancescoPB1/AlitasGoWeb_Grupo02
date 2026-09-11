@@ -9,23 +9,22 @@ namespace AlitasGoWeb.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IdProducto { get; set; }
 
-        [Display(Name = "Categoría")]
-        [Range(1, int.MaxValue, ErrorMessage = "Selecciona una categoría.")]
+        [Range(1, int.MaxValue)]
         public int IdCategoriaProducto { get; set; }
 
-        [Display(Name = "Nombre")]
-        [Required(ErrorMessage = "El nombre es obligatorio.")]
-        [StringLength(100, ErrorMessage = "Máximo {1} caracteres.")]
+        [Required, StringLength(100)]
         public string Nombre { get; set; } = string.Empty;
 
-        [Display(Name = "Tipo")]
-        [Range(1, int.MaxValue, ErrorMessage = "Selecciona un tipo.")]
+        [Range(1, int.MaxValue)]
         public int IdTipoProducto { get; set; }
 
-        [Display(Name = "Descripción")]
-        [StringLength(255, ErrorMessage = "Máximo {1} caracteres.")]
-        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [StringLength(255)]
         public string Descripcion { get; set; } = string.Empty;
+
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal Precio { get; set; }
+
+        public bool RequiereSabor { get; set; }
 
         public bool Activo { get; set; }
 
@@ -35,6 +34,13 @@ namespace AlitasGoWeb.Models
         [ForeignKey(nameof(IdTipoProducto))]
         public virtual TipoProducto? TipoProducto { get; set; }
 
-        public virtual ICollection<PresentacionProducto> PrepresentacionProducto { get; set; } = new List<PresentacionProducto>();
+        public virtual ICollection<DetallePedido> DetallePedidos { get; set; } = new List<DetallePedido>();
+        public virtual ICollection<Receta> ProductoInsumos { get; set; } = new List<Receta>();
+        public virtual ICollection<Promocion> Promociones { get; set; } = new List<Promocion>();
+
+        // Autorreferencia para combos
+        public virtual ICollection<ComboProducto> Componentes { get; set; } = new List<ComboProducto>();
+        public virtual ICollection<ComboProducto> ComponenteDe { get; set; } = new List<ComboProducto>();
+
     }
 }

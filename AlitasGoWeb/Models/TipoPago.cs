@@ -3,15 +3,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AlitasGoWeb.Models
 {
-    public class TipoProducto
+    public class TipoPago
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int IdTipoProducto { get; set; }
+        public int IdTipoPago { get; set; }
         [Required]
-        [StringLength(10)]
+        [StringLength(50)]
         public string Nombre { get; set; } = string.Empty;
         public bool Activo { get; set; }
-        public virtual ICollection<Producto> Productos { get; set; } = new List<Producto>();
+
+        public virtual ICollection<Pago> Pagos { get; set; } = new List<Pago>();
     }
 }
