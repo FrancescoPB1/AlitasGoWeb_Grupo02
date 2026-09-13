@@ -1,0 +1,41 @@
+﻿@model IEnumerable<AlitasGoWeb.Models.Pedido>
+
+@{
+    ViewData["Title"] = "Pedidos";
+}
+
+<h1>Pedidos</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Nuevo pedido</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Canal</th>
+            <th>Estado</th>
+            <th>Total</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@p.IdPedido</td>
+                <td>@p.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@p.Cliente?.Nombre @p.Cliente?.ApellidoPaterno</td>
+                <td>@p.CanalAtencion?.Nombre</td>
+                <td>@p.EstadoPedido?.Nombre</td>
+                <td>S/ @p.Total.ToString("N2")</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@p.IdPedido">Ver</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,157 @@
+﻿@model AlitasGoWeb.ViewModels.PedidoCreateVM
+
+@{
+    ViewData["Title"] = "Nuevo pedido";
+}
+
+<h1>Nuevo pedido</h1>
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="IdCliente"></label>
+                <select asp-for="IdCliente" asp-items="Model.Clientes" class="form-control">
+                    <option value="">-- Selecciona --</option>
+                </select>
+                <span asp-validation-for="IdCliente" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="IdCanalAtencion"></label>
+                <select asp-for="IdCanalAtencion" asp-items="Model.Canales"
+                        class="form-control" id="canal">
+                    <option value="">-- Selecciona --</option>
+                </select>
+                <span asp-validation-for="IdCanalAtencion" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bloque Local -->
+    <div id="bloqueLocal" style="display:none" class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="IdNroMesa"></label>
+                <select asp-for="IdNroMesa" asp-items="Model.Mesas" class="form-control">
+                    <option value="">-- Selecciona --</option>
+                </select>
+                <span asp-validation-for="IdNroMesa" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bloque Delivery -->
+    <div id="bloqueDelivery" style="display:none" class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="IdZonaDelivery"></label>
+                <select asp-for="IdZonaDelivery" asp-items="Model.Zonas" class="form-control">
+                    <option value="">-- Selecciona --</option>
+                </select>
+                <span asp-validation-for="IdZonaDelivery" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="Direccion"></label>
+                <input asp-for="Direccion" class="form-control" />
+                <span asp-validation-for="Direccion" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <h3>Productos</h3>
+    <table class="table" id="tablaDetalles">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Sabor</th>
+                <th>Cantidad</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="filasDetalle">
+            @for (int i = 0; i < Model.Detalles.Count; i++)
+            {
+                <tr class="fila-detalle">
+                    <td>
+                        <select name="Detalles[@i].IdProducto" class="form-control sel-producto">
+                            <option value="">-- Producto --</option>
+                            @foreach (var p in Model.Productos)
+                            {
+                                <option value="@p.Value">@p.Text</option>
+                            }
+                        </select>
+                    </td>
+                    <td>
+                        <select name="Detalles[@i].IdSabor" class="form-control sel-sabor">
+                            <option value="">-- Sabor --</option>
+                            @foreach (var s in Model.Sabores)
+                            {
+                                <option value="@s.Value">@s.Text</option>
+                            }
+                        </select>
+                    </td>
+                    <td>
+                        <input name="Detalles[@i].Cantidad" type="number" min="1" value="1"
+                               class="form-control" />
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-quitar">X</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="button" id="btnAgregar" class="btn btn-secondary">+ Agregar línea</button>
+
+    <hr />
+
+    <button type="submit" class="btn btn-primary">Registrar pedido</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Mostrar bloque Local o Delivery según canal
+        const canal = document.getElementById('canal');
+        const bloqueLocal = document.getElementById('bloqueLocal');
+        const bloqueDelivery = document.getElementById('bloqueDelivery');
+
+        function actualizarCanal() {
+            const val = canal.value;
+            bloqueLocal.style.display = val === '1' ? '' : 'none';
+            bloqueDelivery.style.display = val === '2' ? '' : 'none';
+        }
+        canal.addEventListener('change', actualizarCanal);
+        actualizarCanal();
+
+        // Agregar línea
+        let index = @Model.Detalles.Count;
+        document.getElementById('btnAgregar').addEventListener('click', function () {
+            const tbody = document.getElementById('filasDetalle');
+            const nueva = tbody.querySelector('.fila-detalle').cloneNode(true);
+            nueva.querySelectorAll('select, input').forEach(el => {
+                el.name = el.name.replace(/Detalles\[\d+\]/, `Detalles[${index}]`);
+                if (el.tagName === 'SELECT') el.selectedIndex = 0;
+                if (el.tagName === 'INPUT') el.value = 1;
+            });
+            tbody.appendChild(nueva);
+            index++;
+        });
+
+        // Quitar línea
+        document.getElementById('filasDetalle').addEventListener('click', function (e) {
+            if (e.target.classList.contains('btn-quitar')) {
+                const filas = document.querySelectorAll('.fila-detalle');
+                if (filas.length > 1) e.target.closest('tr').remove();
+            }
+        });
+    </script>
+}

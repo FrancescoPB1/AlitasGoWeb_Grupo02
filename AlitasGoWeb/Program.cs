@@ -1,7 +1,9 @@
 using AlitasGoWeb.Data;
 using AlitasGoWeb.Data.Repositories;
 using AlitasGoWeb.Services;
+using AlitasGoWeb.Services.Precios;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,18 +21,20 @@ builder.Services.AddDbContext<AlitasGoDbContext>(options =>
 );
 
 
-//builder.Services.AddScoped<ICategoriaProductoRepository, CategoriaProductoRepository>();
-//builder.Services.AddScoped<ICategoriaProductoService, CategoriaProductoService>();
+// Repositories
+builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
 
-////builder.Services.AddScoped<ITipoProductoRepository, TipoProductoRepository>();
-//builder.Services.AddScoped<ITipoProductoService, TipoProductoService>();
+// Strategies
+builder.Services.AddScoped<IEstrategiaPrecio, PrecioNormal>();
+builder.Services.AddScoped<IEstrategiaPrecio, PromocionDocena>();
+builder.Services.AddScoped<IEstrategiaPrecio, Promocion2x1>();
 
-//builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
-//builder.Services.AddScoped<IProductoService, ProductoService>();
+// Services
+builder.Services.AddScoped<IPromocionService, PromocionService>();
+builder.Services.AddScoped<IPedidoService, PedidoService>();
 
-//builder.Services.AddScoped<IPresentacionProductoRepository, PresentacionProductoRepository>();
-//builder.Services.AddScoped<IPresentacionProductoService, PresentacionProductoService>();
-
+// Singleton
+builder.Services.AddSingleton<IConfiguracionSistema>(ConfiguracionSistema.Instancia);
 builder.Services.AddControllersWithViews(options =>
 {
 
@@ -61,6 +65,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Producto}/{action=Index}/{id?}");
+    pattern: "{controller=Pedidos}/{action=Index}/{id?}");
 
 app.Run();

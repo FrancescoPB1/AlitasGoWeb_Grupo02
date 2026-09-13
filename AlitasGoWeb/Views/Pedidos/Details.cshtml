@@ -1,0 +1,76 @@
+﻿@model AlitasGoWeb.Models.Pedido
+
+@{
+    ViewData["Title"] = "Detalle del pedido";
+}
+
+<h1>Pedido #@Model.IdPedido</h1>
+
+<dl class="row">
+    <dt class="col-sm-2">Fecha</dt>
+    <dd class="col-sm-10">@Model.Fecha.ToString("dd/MM/yyyy HH:mm")</dd>
+
+    <dt class="col-sm-2">Cliente</dt>
+    <dd class="col-sm-10">@Model.Cliente?.Nombre @Model.Cliente?.ApellidoPaterno</dd>
+
+    <dt class="col-sm-2">Canal</dt>
+    <dd class="col-sm-10">@Model.CanalAtencion?.Nombre</dd>
+
+    <dt class="col-sm-2">Estado</dt>
+    <dd class="col-sm-10">@Model.EstadoPedido?.Nombre</dd>
+
+    @if (Model.PedidoDelivery != null)
+    {
+        <dt class="col-sm-2">Dirección</dt>
+        <dd class="col-sm-10">@Model.PedidoDelivery.Direccion</dd>
+    }
+
+    @if (Model.PedidoLocal != null)
+    {
+        <dt class="col-sm-2">Mesa</dt>
+        <dd class="col-sm-10">@Model.PedidoLocal.NroMesa?.NumeroMesa</dd>
+    }
+</dl>
+
+<h3>Detalle</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Sabor</th>
+            <th>Cantidad</th>
+            <th>Precio</th>
+            <th>Descuento</th>
+            <th>SubTotal</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var d in Model.DetallePedidos)
+        {
+            <tr>
+                <td>@d.Producto?.Nombre</td>
+                <td>@d.Sabor?.Nombre</td>
+                <td>@d.Cantidad</td>
+                <td>S/ @d.PrecioUnitario.ToString("N2")</td>
+                <td>S/ @d.Descuento.ToString("N2")</td>
+                <td>S/ @d.SubTotal.ToString("N2")</td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="5" class="text-end">Total</th>
+            <th>S/ @Model.Total.ToString("N2")</th>
+        </tr>
+    </tfoot>
+</table>
+
+@if (Model.IdEstadoPedido != 6)
+{
+    <form asp-action="Anular" asp-route-id="@Model.IdPedido" method="post"
+          onsubmit="return confirm('¿Anular este pedido?');">
+        <button type="submit" class="btn btn-danger">Anular</button>
+    </form>
+}
+
+<a asp-action="Index" class="btn btn-secondary">Volver</a>
