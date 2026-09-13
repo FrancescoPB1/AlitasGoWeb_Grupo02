@@ -31,7 +31,7 @@
         </div>
     </div>
 
-    <!-- Bloque Local -->
+    <!-- Local -->
     <div id="bloqueLocal" style="display:none" class="row">
         <div class="col-md-6">
             <div class="form-group">
@@ -44,7 +44,7 @@
         </div>
     </div>
 
-    <!-- Bloque Delivery -->
+    <!-- Delivery -->
     <div id="bloqueDelivery" style="display:none" class="row">
         <div class="col-md-6">
             <div class="form-group">
@@ -68,22 +68,31 @@
     <table class="table" id="tablaDetalles">
         <thead>
             <tr>
-                <th>Producto</th>
-                <th>Sabor</th>
-                <th>Cantidad</th>
+                <th style="width:35%">Producto</th>
+                <th style="width:25%">Sabor</th>
+                <th style="width:20%">Cantidad</th>
                 <th></th>
             </tr>
         </thead>
         <tbody id="filasDetalle">
             @for (int i = 0; i < Model.Detalles.Count; i++)
             {
+                var det = Model.Detalles[i];
                 <tr class="fila-detalle">
                     <td>
                         <select name="Detalles[@i].IdProducto" class="form-control sel-producto">
                             <option value="">-- Producto --</option>
                             @foreach (var p in Model.Productos)
                             {
-                                <option value="@p.Value">@p.Text</option>
+                                var idProd = int.Parse(p.Value);
+                                var requiere = Model.ProductoRequiereSabor.ContainsKey(idProd)
+                                && Model.ProductoRequiereSabor[idProd];
+                                var sel = det.IdProducto == idProd ? "selected" : null;
+                                <option value="@p.Value"
+                                        data-requiere-sabor="@requiere.ToString().ToLower()"
+                                        selected="@sel">
+                                    @p.Text
+                                </option>
                             }
                         </select>
                     </td>
@@ -92,13 +101,21 @@
                             <option value="">-- Sabor --</option>
                             @foreach (var s in Model.Sabores)
                             {
-                                <option value="@s.Value">@s.Text</option>
+                                var idSab = int.Parse(s.Value);
+                                var selS = det.IdSabor == idSab ? "selected" : null;
+                                <option value="@s.Value" selected="@selS">@s.Text</option>
                             }
                         </select>
                     </td>
                     <td>
-                        <input name="Detalles[@i].Cantidad" type="number" min="1" value="1"
-                               class="form-control" />
+                        <div class="input-group">
+                            <button type="button" class="btn btn-outline-secondary btn-menos">−</button>
+                            <input name="Detalles[@i].Cantidad"
+                                   type="number" min="1"
+                                   value="@det.Cantidad"
+                                   class="form-control text-center" />
+                            <button type="button" class="btn btn-outline-secondary btn-mas">+</button>
+                        </div>
                     </td>
                     <td>
                         <button type="button" class="btn btn-danger btn-quitar">X</button>
@@ -119,7 +136,7 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // Mostrar bloque Local o Delivery según canal
+        // --- Local / Delivery ---
         const canal = document.getElementById('canal');
         const bloqueLocal = document.getElementById('bloqueLocal');
         const bloqueDelivery = document.getElementById('bloqueDelivery');
@@ -132,21 +149,70 @@
         canal.addEventListener('change', actualizarCanal);
         actualizarCanal();
 
-        // Agregar línea
+        // --- Mostrar/ocultar sabor según producto ---
+        function actualizarSabor(fila) {
+            const selProd = fila.querySelector('.sel-producto');
+            const selSabor = fila.querySelector('.sel-sabor');
+            const opt = selProd.selectedOptions[0];
+            const requiere = opt && opt.dataset.requiereSabor === 'true';
+
+            if (requiere) {
+                selSabor.style.display = '';
+                selSabor.disabled = false;
+            } else {
+                selSabor.style.display = 'none';
+                selSabor.disabled = true;
+                selSabor.value = '';
+            }
+        }
+
+        document.querySelectorAll('.fila-detalle').forEach(actualizarSabor);
+
+        document.getElementById('filasDetalle').addEventListener('change', function (e) {
+            if (e.target.classList.contains('sel-producto')) {
+                actualizarSabor(e.target.closest('tr'));
+            }
+        });
+
+        // --- + / − cantidad ---
+        document.getElementById('filasDetalle').addEventListener('click', function (e) {
+            const grupo = e.target.closest('.input-group');
+            if (!grupo) return;
+            const input = grupo.querySelector('input');
+
+            if (e.target.classList.contains('btn-mas')) {
+                const v = parseInt(input.value) || 0;
+                input.value = v + 1;
+            }
+            if (e.target.classList.contains('btn-menos')) {
+                const v = parseInt(input.value) || 1;
+                input.value = v > 1 ? v - 1 : 1;
+            }
+        });
+
+        // --- Agregar línea (cantidad nueva = 1) ---
         let index = @Model.Detalles.Count;
         document.getElementById('btnAgregar').addEventListener('click', function () {
             const tbody = document.getElementById('filasDetalle');
             const nueva = tbody.querySelector('.fila-detalle').cloneNode(true);
+
             nueva.querySelectorAll('select, input').forEach(el => {
                 el.name = el.name.replace(/Detalles\[\d+\]/, `Detalles[${index}]`);
-                if (el.tagName === 'SELECT') el.selectedIndex = 0;
-                if (el.tagName === 'INPUT') el.value = 1;
+                if (el.tagName === 'SELECT') {
+                    el.selectedIndex = 0;
+                    el.disabled = false;
+                }
+                if (el.tagName === 'INPUT') {
+                    el.value = 1;
+                }
             });
+
             tbody.appendChild(nueva);
+            actualizarSabor(nueva);
             index++;
         });
 
-        // Quitar línea
+        // --- Quitar línea ---
         document.getElementById('filasDetalle').addEventListener('click', function (e) {
             if (e.target.classList.contains('btn-quitar')) {
                 const filas = document.querySelectorAll('.fila-detalle');

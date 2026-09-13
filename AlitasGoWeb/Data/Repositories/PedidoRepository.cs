@@ -18,6 +18,10 @@ namespace AlitasGoWeb.Data.Repositories
                 .Include(p => p.Cliente)
                 .Include(p => p.CanalAtencion)
                 .Include(p => p.EstadoPedido)
+                .Include(p => p.PedidoDelivery)
+                    .ThenInclude(d => d.ZonaDelivery)
+                .Include(p => p.PedidoLocal)
+                    .ThenInclude(l => l.NroMesa)
                 .Include(p => p.DetallePedidos)
                     .ThenInclude(d => d.Producto)
                 .Include(p => p.DetallePedidos)
@@ -31,7 +35,9 @@ namespace AlitasGoWeb.Data.Repositories
                 .Include(p => p.Cliente)
                 .Include(p => p.CanalAtencion)
                 .Include(p => p.EstadoPedido)
-                .Include(p => p.DetallePedidos)
+                .Include(p => p.PedidoDelivery)
+                    .ThenInclude(d => d.ZonaDelivery)
+                .Include(p => p.PedidoLocal)
                 .OrderByDescending(p => p.Fecha)
                 .ToListAsync();
         }

@@ -25,6 +25,7 @@ namespace AlitasGoWeb.ViewModels
         public int? IdNroMesa { get; set; }
 
         public List<DetallePedidoVM> Detalles { get; set; } = new();
+        public Dictionary<int, bool> ProductoRequiereSabor { get; set; } = new();
 
         // Listas para dropdowns (no se validan)
         public IEnumerable<SelectListItem> Clientes { get; set; } = new List<SelectListItem>();

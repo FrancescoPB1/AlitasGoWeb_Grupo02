@@ -48,12 +48,12 @@ namespace AlitasGoWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(PedidoCreateVM vm)
         {
-            // Quitar detalles vacíos de la validación
-            vm.Detalles = vm.Detalles
+            
+            var detallesValidos = vm.Detalles
                 .Where(d => d.IdProducto > 0 && d.Cantidad > 0)
                 .ToList();
 
-            if (vm.Detalles.Count == 0)
+            if (detallesValidos.Count == 0)
                 ModelState.AddModelError("", "Agrega al menos un producto.");
 
             if (vm.IdCanalAtencion == 1 && (!vm.IdNroMesa.HasValue || vm.IdNroMesa <= 0))
@@ -62,10 +62,11 @@ namespace AlitasGoWeb.Controllers
             if (vm.IdCanalAtencion == 2 && (string.IsNullOrWhiteSpace(vm.Direccion) || !vm.IdZonaDelivery.HasValue))
                 ModelState.AddModelError(nameof(vm.Direccion), "Ingresa dirección y zona de delivery.");
 
+            
             if (!ModelState.IsValid)
             {
                 await CargarListasAsync(vm);
-                return View(vm);
+                return View(vm);   // ← conserva detalles, direcciones, cantidades, todo
             }
 
             var pedido = new Pedido
@@ -168,6 +169,26 @@ namespace AlitasGoWeb.Controllers
                     Value = s.IdSabor.ToString(),
                     Text = s.Nombre
                 }).ToListAsync();
+
+            vm.ProductoRequiereSabor = await _ctx.Productos
+                .Where(p => p.Activo)
+                .ToDictionaryAsync(p => p.IdProducto, p => p.RequiereSabor);
+        }
+        // POST: /Pedidos/CambiarEstado
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CambiarEstado(int id, int nuevoEstado)
+        {
+            try
+            {
+                await _pedidoService.CambiarEstadoAsync(id, nuevoEstado);
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Details), new { id });
         }
     }
 }

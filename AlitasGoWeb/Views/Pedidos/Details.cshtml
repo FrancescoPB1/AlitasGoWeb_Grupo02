@@ -1,7 +1,14 @@
-﻿@model AlitasGoWeb.Models.Pedido
+﻿@using System.Linq
+@model AlitasGoWeb.Models.Pedido
 
 @{
     ViewData["Title"] = "Detalle del pedido";
+    int estado = Model.IdEstadoPedido;
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
 }
 
 <h1>Pedido #@Model.IdPedido</h1>
@@ -17,12 +24,20 @@
     <dd class="col-sm-10">@Model.CanalAtencion?.Nombre</dd>
 
     <dt class="col-sm-2">Estado</dt>
-    <dd class="col-sm-10">@Model.EstadoPedido?.Nombre</dd>
+    <dd class="col-sm-10">
+        <span class="badge bg-info">@Model.EstadoPedido?.Nombre</span>
+    </dd>
 
     @if (Model.PedidoDelivery != null)
     {
         <dt class="col-sm-2">Dirección</dt>
         <dd class="col-sm-10">@Model.PedidoDelivery.Direccion</dd>
+
+        <dt class="col-sm-2">Zona</dt>
+        <dd class="col-sm-10">
+            @Model.PedidoDelivery.ZonaDelivery?.NombreZona
+            (S/ @Model.PedidoDelivery.ZonaDelivery?.CostoDelivery.ToString("N2"))
+        </dd>
     }
 
     @if (Model.PedidoLocal != null)
@@ -65,12 +80,69 @@
     </tfoot>
 </table>
 
-@if (Model.IdEstadoPedido != 6)
-{
-    <form asp-action="Anular" asp-route-id="@Model.IdPedido" method="post"
-          onsubmit="return confirm('¿Anular este pedido?');">
-        <button type="submit" class="btn btn-danger">Anular</button>
-    </form>
-}
+<hr />
 
-<a asp-action="Index" class="btn btn-secondary">Volver</a>
+<h4>Acciones</h4>
+<div class="d-flex gap-2 flex-wrap">
+
+    @if (estado == 1)
+    {
+        <form asp-action="CambiarEstado" method="post">
+            <input type="hidden" name="id" value="@Model.IdPedido" />
+            <input type="hidden" name="nuevoEstado" value="2" />
+            <button class="btn btn-primary">Enviar a cocina</button>
+        </form>
+    }
+
+    @if (estado == 2)
+    {
+        <form asp-action="CambiarEstado" method="post">
+            <input type="hidden" name="id" value="@Model.IdPedido" />
+            <input type="hidden" name="nuevoEstado" value="3" />
+            <button class="btn btn-success">Marcar como listo</button>
+        </form>
+    }
+
+    @if (estado == 3 && Model.PedidoDelivery != null)
+    {
+        <form asp-action="CambiarEstado" method="post">
+            <input type="hidden" name="id" value="@Model.IdPedido" />
+            <input type="hidden" name="nuevoEstado" value="4" />
+            <button class="btn btn-warning">Enviar a repartidor</button>
+        </form>
+    }
+
+    @if (estado == 3 && Model.PedidoLocal != null)
+    {
+        <form asp-action="CambiarEstado" method="post">
+            <input type="hidden" name="id" value="@Model.IdPedido" />
+            <input type="hidden" name="nuevoEstado" value="5" />
+            <button class="btn btn-success">Servido en mesa</button>
+        </form>
+    }
+
+    @if (estado == 4)
+    {
+        <form asp-action="CambiarEstado" method="post">
+            <input type="hidden" name="id" value="@Model.IdPedido" />
+            <input type="hidden" name="nuevoEstado" value="5" />
+            <button class="btn btn-success">Confirmar entrega</button>
+        </form>
+    }
+
+    @{
+        bool puedeAnular = Model.PedidoDelivery != null
+        ? (estado != 5 && estado != 6)
+        : (estado == 1 || estado == 2);
+    }
+
+    @if (puedeAnular)
+    {
+        <form asp-action="Anular" asp-route-id="@Model.IdPedido" method="post"
+              onsubmit="return confirm('¿Anular este pedido?');">
+            <button class="btn btn-danger">Anular pedido</button>
+        </form>
+    }
+
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</div>
