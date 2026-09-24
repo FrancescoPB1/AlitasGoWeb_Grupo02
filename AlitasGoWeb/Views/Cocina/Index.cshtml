@@ -1,0 +1,127 @@
+@model List<Pedido>
+@{
+    ViewData["Title"] = "Cocina";
+    ViewData["BodyClass"] = "modo-cocina";
+    ViewData["SinToast"] = "si";   // la cocina muestra y lee sus propios avisos
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <h1 class="cocina-titulo mb-0"><i class="bi bi-egg-fried" aria-hidden="true"></i> Pedidos en cocina</h1>
+    <div class="d-flex gap-2 align-items-center">
+        <button type="button" id="btnVoz" class="btn btn-lg btn-outline-light" aria-pressed="false">
+            <i class="bi bi-volume-mute" aria-hidden="true"></i> <span>Activar aviso por voz</span>
+        </button>
+    </div>
+</div>
+
+<!-- Región viva: los lectores de pantalla anuncian cada cambio -->
+<div id="avisoCocina" class="aviso-cocina mb-4 d-none" role="status" aria-live="assertive" aria-atomic="true"></div>
+
+<div id="contenedorTablero">
+    <partial name="_Tablero" model="Model" />
+</div>
+
+<p class="mt-4 text-white-50">Los pedidos aparecen solos, en tiempo real. Usa Tab para moverte entre pedidos y Enter para marcar.</p>
+
+@section Scripts {
+    <script>
+        (function () {
+            "use strict";
+            var urlTablero = '@Url.Action("Tablero")';
+            var contenedor = document.getElementById('contenedorTablero');
+            var aviso = document.getElementById('avisoCocina');
+            var btnVoz = document.getElementById('btnVoz');
+            var CLAVE = 'alitasgo-cocina-anunciados';
+            var vozActiva = localStorage.getItem('alitasgo-cocina-voz') === 'si';
+
+            function pintarBotonVoz() {
+                btnVoz.setAttribute('aria-pressed', vozActiva ? 'true' : 'false');
+                btnVoz.querySelector('i').className = vozActiva ? 'bi bi-volume-up' : 'bi bi-volume-mute';
+                btnVoz.querySelector('span').textContent = vozActiva ? 'Aviso por voz activado' : 'Activar aviso por voz';
+                btnVoz.classList.toggle('btn-light', vozActiva);
+                btnVoz.classList.toggle('btn-outline-light', !vozActiva);
+            }
+
+            function avisar(texto) {
+                if (!texto) return;
+                texto = texto.replace(/#/g, 'número ');
+                aviso.textContent = texto;
+                aviso.classList.remove('d-none');
+                if (vozActiva && 'speechSynthesis' in window) {
+                    var frase = new SpeechSynthesisUtterance(texto);
+                    frase.lang = 'es-PE';
+                    frase.rate = 0.9;
+                    window.speechSynthesis.speak(frase);
+                }
+            }
+
+            function leerAnunciados() {
+                try { return JSON.parse(sessionStorage.getItem(CLAVE) || '[]'); } catch (e) { return []; }
+            }
+
+            // Anuncia solo los pedidos que aparecen después de abrir la pantalla.
+            function revisarNuevos(esPrimeraCarga) {
+                var anunciados = leerAnunciados();
+                contenedor.querySelectorAll('[data-id]').forEach(function (t) {
+                    var id = t.getAttribute('data-id');
+                    if (anunciados.indexOf(id) === -1) {
+                        if (!esPrimeraCarga) avisar(t.getAttribute('data-voz'));
+                        anunciados.push(id);
+                    }
+                });
+                sessionStorage.setItem(CLAVE, JSON.stringify(anunciados.slice(-200)));
+            }
+
+            function refrescar() {
+                $.get(urlTablero).done(function (html) {
+                    var actual = document.getElementById('tablero');
+                    var nuevo = $('<div>').html(html).find('#tablero');
+                    if (!nuevo.length) { location.reload(); return; }   // sesión expirada
+                    if (actual && nuevo.length && actual.getAttribute('data-firma') === nuevo.attr('data-firma')) return;
+
+                    // conservar el foco del teclado en el mismo pedido
+                    var enfocado = document.activeElement ? document.activeElement.closest('[data-id]') : null;
+                    var idEnfocado = enfocado ? enfocado.getAttribute('data-id') : null;
+
+                    contenedor.innerHTML = html;
+                    revisarNuevos(false);
+
+                    if (idEnfocado) {
+                        var boton = contenedor.querySelector('[data-id="' + idEnfocado + '"] button');
+                        if (boton) boton.focus();
+                    }
+                });
+            }
+
+            // Empezar / ¡Listo! sin recargar la página (si falla el AJAX, el formulario se envía normal)
+            $(contenedor).on('submit', 'form.js-accion-cocina', function (e) {
+                e.preventDefault();
+                var form = this;
+                $.post(form.action, $(form).serialize())
+                    .done(function (r) {
+                        avisar(r.mensaje);
+                        refrescar();
+                    })
+                    .fail(function () { form.submit(); });
+            });
+
+            btnVoz.addEventListener('click', function () {
+                vozActiva = !vozActiva;
+                localStorage.setItem('alitasgo-cocina-voz', vozActiva ? 'si' : 'no');
+                pintarBotonVoz();
+                if (vozActiva) avisar('Aviso por voz activado');
+            });
+
+            // Tiempo real: el servidor avisa en cuanto entra, cambia o se anula un pedido.
+            document.addEventListener('alitasgo:pedido', function (e) {
+                if (e.detail.mensaje) avisar(e.detail.mensaje);   // p. ej. "Atención: pedido número 12 anulado"
+                refrescar();
+            });
+            document.addEventListener('alitasgo:reconectado', refrescar);
+
+            pintarBotonVoz();
+            revisarNuevos(sessionStorage.getItem(CLAVE) === null);
+            setInterval(refrescar, 30000);   // respaldo por si se corta la conexión
+        })();
+    </script>
+}

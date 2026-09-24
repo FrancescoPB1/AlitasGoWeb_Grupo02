@@ -9,23 +9,33 @@ namespace AlitasGoWeb.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IdProducto { get; set; }
 
-        [Range(1, int.MaxValue)]
+        public const int IdTipoCombo = 4;
+
+        [Display(Name = "Categoría")]
+        [Range(1, int.MaxValue, ErrorMessage = "Selecciona una categoría.")]
         public int IdCategoriaProducto { get; set; }
 
-        [Required, StringLength(100)]
+        [Display(Name = "Nombre")]
+        [Required(ErrorMessage = "El nombre es obligatorio."), StringLength(100, ErrorMessage = "Máximo {1} caracteres.")]
         public string Nombre { get; set; } = string.Empty;
 
-        [Range(1, int.MaxValue)]
+        [Display(Name = "Tipo")]
+        [Range(1, int.MaxValue, ErrorMessage = "Selecciona un tipo.")]
         public int IdTipoProducto { get; set; }
 
-        [StringLength(255)]
+        [Display(Name = "Descripción")]
+        [StringLength(255, ErrorMessage = "Máximo {1} caracteres.")]
         public string Descripcion { get; set; } = string.Empty;
 
+        [Display(Name = "Precio (incluye IGV)")]
+        [Range(0.10, 999.00, ErrorMessage = "Precio entre S/ 0.10 y S/ 999")]
         [Column(TypeName = "decimal(10,2)")]
         public decimal Precio { get; set; }
 
+        [Display(Name = "¿Requiere sabor?")]
         public bool RequiereSabor { get; set; }
 
+        [Display(Name = "Activo")]
         public bool Activo { get; set; }
 
         [ForeignKey(nameof(IdCategoriaProducto))]
@@ -41,6 +51,9 @@ namespace AlitasGoWeb.Models
         // Autorreferencia para combos
         public virtual ICollection<ComboProducto> Componentes { get; set; } = new List<ComboProducto>();
         public virtual ICollection<ComboProducto> ComponenteDe { get; set; } = new List<ComboProducto>();
+
+        [NotMapped]
+        public bool EsCombo => IdTipoProducto == IdTipoCombo;
 
     }
 }

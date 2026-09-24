@@ -1,0 +1,55 @@
+@model CobroVM
+<form asp-controller="@Model.Controlador" asp-action="@Model.Accion" asp-route-id="@Model.IdPedido" method="post" data-una-vez novalidate>
+    <div asp-validation-summary="All" class="alert alert-danger py-2" role="alert"></div>
+
+    <fieldset class="mb-3">
+        <legend class="form-label fw-semibold fs-6">Comprobante</legend>
+        <div class="btn-group w-100" role="group">
+            <input type="radio" class="btn-check" asp-for="TipoComprobante" id="compBoleta" value="@TiposComprobante.Boleta" />
+            <label class="btn btn-outline-primary" for="compBoleta"><i class="bi bi-receipt" aria-hidden="true"></i> Boleta</label>
+            <input type="radio" class="btn-check" asp-for="TipoComprobante" id="compFactura" value="@TiposComprobante.Factura" />
+            <label class="btn btn-outline-primary" for="compFactura"><i class="bi bi-building" aria-hidden="true"></i> Factura</label>
+        </div>
+    </fieldset>
+
+    <div id="datosFactura" class="row g-3 mb-3">
+        <div class="col-sm-5">
+            <label asp-for="Ruc" class="form-label"></label>
+            <input asp-for="Ruc" class="form-control" inputmode="numeric" maxlength="11" autocomplete="off" />
+            <span asp-validation-for="Ruc" class="text-danger small"></span>
+        </div>
+        <div class="col-sm-7">
+            <label asp-for="RazonSocial" class="form-label"></label>
+            <input asp-for="RazonSocial" class="form-control" />
+            <span asp-validation-for="RazonSocial" class="text-danger small"></span>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="IdTipoPago" class="form-label"></label>
+        <select asp-for="IdTipoPago" asp-items="Model.TiposPago" class="form-select">
+            <option value="">-- Selecciona --</option>
+        </select>
+        <span asp-validation-for="IdTipoPago" class="text-danger small"></span>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center border-top pt-3">
+        <div>
+            <div class="text-muted small">Total a cobrar</div>
+            <div class="fs-3 fw-bold">S/ @(Model.Pedido?.Total.ToString("0.00"))</div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-cash-coin" aria-hidden="true"></i> Registrar cobro
+        </button>
+    </div>
+</form>
+
+<script>
+    (function () {
+        var factura = document.getElementById('compFactura');
+        var datos = document.getElementById('datosFactura');
+        function actualizar() { datos.classList.toggle('d-none', !factura.checked); }
+        document.querySelectorAll('input[name="TipoComprobante"]').forEach(function (r) { r.addEventListener('change', actualizar); });
+        actualizar();
+    })();
+</script>

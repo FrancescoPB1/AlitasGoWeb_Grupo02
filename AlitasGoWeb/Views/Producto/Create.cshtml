@@ -19,51 +19,75 @@
                 <h1 class="h5 mb-0"><i class="bi bi-box-seam" aria-hidden="true"></i> @ViewData["Title"]</h1>
             </div>
             <div class="card-body">
-                <form asp-action="@(isEdit ? "Edit" : "Create")" method="post" data-una-vez novalidate>
+                <form asp-action="@(isEdit ? "Edit" : "Create")" asp-route-id="@(isEdit ? Model.IdProducto : null)" method="post" data-una-vez>
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
 
                     @if (isEdit)
                     {
                         <input type="hidden" asp-for="IdProducto" />
-                        <input type="hidden" asp-for="Activo" />
+                    }
+                    else
+                    {
+                        <input type="hidden" asp-for="Activo" value="true" />
                     }
 
                     <div class="mb-3">
-                        <label asp-for="Nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
-                        <input asp-for="Nombre" class="form-control" placeholder="Ej: Alitas BBQ" autofocus />
-                        <span asp-validation-for="Nombre" class="invalid-feedback d-block"></span>
+                        <label asp-for="Nombre" class="form-label"></label>
+                        <input asp-for="Nombre" class="form-control" autofocus />
+                        <span asp-validation-for="Nombre" class="text-danger small"></span>
                     </div>
 
-                    <div class="row g-3">
-                        <div class="col-12 col-sm-6">
-                            <label asp-for="IdCategoriaProducto" class="form-label">Categoría <span class="text-danger">*</span></label>
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-6">
+                            <label asp-for="IdCategoriaProducto" class="form-label"></label>
                             <select asp-for="IdCategoriaProducto" asp-items="ViewBag.CategoriaProductos" class="form-select">
-                                <option value="">— Selecciona —</option>
+                                <option value="0">-- Selecciona --</option>
                             </select>
-                            <span asp-validation-for="IdCategoriaProducto" class="invalid-feedback d-block"></span>
+                            <span asp-validation-for="IdCategoriaProducto" class="text-danger small"></span>
                         </div>
-                        <div class="col-12 col-sm-6">
-                            <label asp-for="IdTipoProducto" class="form-label">Tipo <span class="text-danger">*</span></label>
+                        <div class="col-sm-6">
+                            <label asp-for="IdTipoProducto" class="form-label"></label>
                             <select asp-for="IdTipoProducto" asp-items="ViewBag.TipoProductos" class="form-select">
-                                <option value="">— Selecciona —</option>
+                                <option value="0">-- Selecciona --</option>
                             </select>
-                            <span asp-validation-for="IdTipoProducto" class="invalid-feedback d-block"></span>
+                            <span asp-validation-for="IdTipoProducto" class="text-danger small"></span>
                         </div>
                     </div>
 
-                    <div class="my-3">
-                        <label asp-for="Descripcion" class="form-label">Descripción <span class="text-muted fw-normal">(opcional)</span></label>
-                        <textarea asp-for="Descripcion" class="form-control" rows="3" placeholder="Detalles del producto…"></textarea>
-                        <span asp-validation-for="Descripcion" class="invalid-feedback d-block"></span>
-                        <div class="form-text">Máximo 255 caracteres.</div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-6">
+                            <label asp-for="Precio" class="form-label"></label>
+                            <div class="input-group">
+                                <span class="input-group-text">S/</span>
+                                <input asp-for="Precio" class="form-control" type="number" step="0.10" min="0.10" max="999" />
+                            </div>
+                            <span asp-validation-for="Precio" class="text-danger small"></span>
+                        </div>
+                        <div class="col-sm-6 d-flex align-items-end">
+                            <div class="form-check form-switch mb-2">
+                                <input asp-for="RequiereSabor" class="form-check-input" role="switch" />
+                                <label asp-for="RequiereSabor" class="form-check-label"></label>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="d-flex flex-column-reverse flex-sm-row justify-content-between gap-2">
+                    <div class="mb-3">
+                        <label asp-for="Descripcion" class="form-label"></label>
+                        <textarea asp-for="Descripcion" class="form-control" rows="2"></textarea>
+                        <span asp-validation-for="Descripcion" class="text-danger small"></span>
+                    </div>
+
+                    @if (isEdit)
+                    {
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="Activo" class="form-check-input" role="switch" />
+                            <label asp-for="Activo" class="form-check-label">Producto activo (visible al tomar pedidos)</label>
+                        </div>
+                    }
+
+                    <div class="d-flex justify-content-between">
                         <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg" aria-hidden="true"></i>
-                            @(isEdit ? "Guardar cambios" : "Crear producto")
-                        </button>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Guardar</button>
                     </div>
                 </form>
             </div>

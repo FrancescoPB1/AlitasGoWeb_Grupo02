@@ -1,0 +1,67 @@
+@model List<MesaSalonVM>
+@{
+    var libres = Model.Count(m => m.Libre);
+}
+<div data-parcial>
+    <p class="text-muted"><strong>@libres</strong> de @Model.Count mesas libres.</p>
+    @foreach (var zona in Model.GroupBy(m => m.Mesa.ZonaLocal?.Nombre ?? "Sin zona"))
+    {
+        <h2 class="h5 mt-2 mb-3">@zona.Key</h2>
+        <div class="row g-3 mb-4">
+            @foreach (var m in zona)
+            {
+                <div class="col-sm-6 col-lg-4 col-xl-3">
+                    <div class="card mesa h-100 @(m.Libre ? "" : "ocupada")">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h3 class="h5 mb-0">Mesa @m.Mesa.NumeroMesa</h3>
+                                @if (m.Libre)
+                                {
+                                    <span class="badge bg-success">Libre</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">Ocupada</span>
+                                }
+                            </div>
+
+                            @foreach (var p in m.PedidosActivos)
+                            {
+                                <div class="border rounded p-2 mb-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <a asp-controller="Pedidos" asp-action="Details" asp-route-id="@p.IdPedido" class="fw-semibold">#@p.IdPedido</a>
+                                        <partial name="_EstadoBadge" model="p.IdEstadoPedido" />
+                                    </div>
+                                    <div class="small">S/ @p.Total.ToString("0.00") · @p.Fecha.ToString("HH:mm")</div>
+                                    @if (p.IdEstadoPedido == Estados.Listo)
+                                    {
+                                        <form asp-controller="Pedidos" asp-action="MarcarServido" asp-route-id="@p.IdPedido" asp-route-volver="salon" method="post" class="mt-2 d-grid">
+                                            <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-cup-hot" aria-hidden="true"></i> Servir</button>
+                                        </form>
+                                    }
+                                    else if (p.IdEstadoPedido == Estados.Servido)
+                                    {
+                                        <a asp-controller="Pedidos" asp-action="Cobrar" asp-route-id="@p.IdPedido" class="btn btn-sm btn-primary mt-2 w-100">
+                                            <i class="bi bi-cash-coin" aria-hidden="true"></i> Cobrar
+                                        </a>
+                                    }
+                                    else if (p.IdEstadoPedido == Estados.Recibido)
+                                    {
+                                        <a asp-controller="Pedidos" asp-action="Edit" asp-route-id="@p.IdPedido" class="btn btn-sm btn-outline-primary mt-2 w-100">
+                                            <i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar ítems
+                                        </a>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        <div class="card-footer bg-white border-0 pt-0">
+                            <a asp-controller="Pedidos" asp-action="Create" asp-route-idNroMesa="@m.Mesa.IdNroMesa" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-plus-square" aria-hidden="true"></i> Nuevo pedido
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

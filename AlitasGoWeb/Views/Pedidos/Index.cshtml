@@ -1,41 +1,51 @@
-﻿@model IEnumerable<AlitasGoWeb.Models.Pedido>
-
+@model PedidosIndexVM
 @{
     ViewData["Title"] = "Pedidos";
 }
 
-<h1>Pedidos</h1>
+<div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h1 class="h3"><i class="bi bi-receipt" aria-hidden="true"></i> Pedidos del día</h1>
+        <p class="text-muted mb-0">Salón y delivery en una sola lista, con su estado actual.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a asp-action="Create" asp-route-canal="@Canales.Salon" class="btn btn-primary">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> Pedido en salón
+        </a>
+        <a asp-action="Create" asp-route-canal="@Canales.Delivery" class="btn btn-outline-primary">
+            <i class="bi bi-bicycle" aria-hidden="true"></i> Pedido delivery
+        </a>
+    </div>
+</div>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Nuevo pedido</a>
-</p>
+<form method="get" asp-action="Index" class="card card-body mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-sm-4 col-lg-3">
+            <label for="fecha" class="form-label small mb-1">Fecha</label>
+            <input type="date" id="fecha" name="fecha" class="form-control" value="@Model.Fecha.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="col-sm-4 col-lg-3">
+            <label for="idEstado" class="form-label small mb-1">Estado</label>
+            <select id="idEstado" name="idEstado" class="form-select" asp-items="Model.Estados">
+                <option value="">Todos</option>
+            </select>
+        </div>
+        <div class="col-sm-4 col-lg-2 d-grid">
+            <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-funnel" aria-hidden="true"></i> Filtrar</button>
+        </div>
+    </div>
+</form>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Fecha</th>
-            <th>Cliente</th>
-            <th>Canal</th>
-            <th>Estado</th>
-            <th>Total</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var p in Model)
-        {
-            <tr>
-                <td>@p.IdPedido</td>
-                <td>@p.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
-                <td>@p.Cliente?.Nombre @p.Cliente?.ApellidoPaterno</td>
-                <td>@p.CanalAtencion?.Nombre</td>
-                <td>@p.EstadoPedido?.Nombre</td>
-                <td>S/ @p.Total.ToString("N2")</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@p.IdPedido">Ver</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<div id="contenedorLista">
+    <partial name="_Lista" model="Model" />
+</div>
+
+@section Scripts {
+    <script>
+        // La lista del día se actualiza sola cuando cambia cualquier pedido.
+        AlitasGo.refrescarAlCambiar('contenedorLista', function () {
+            return '@Url.Action("Lista")?fecha=' + encodeURIComponent(document.getElementById('fecha').value) +
+                   '&idEstado=' + encodeURIComponent(document.getElementById('idEstado').value);
+        });
+    </script>
+}

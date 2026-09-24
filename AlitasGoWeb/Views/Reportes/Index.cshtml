@@ -1,0 +1,103 @@
+@model RangoFechasVM<ReporteVentas>
+@{
+    ViewData["Title"] = "Reportes";
+    var r = Model.Datos;
+    int Porcentaje(decimal parte, decimal total) => total == 0 ? 0 : (int)Math.Round(parte * 100 / total);
+    var maxSabor = r.Sabores.Any() ? r.Sabores.Max(s => s.Porciones) : 0;
+}
+
+<div class="page-header d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
+    <div>
+        <h1 class="h3"><i class="bi bi-graph-up" aria-hidden="true"></i> Reportes de ventas</h1>
+        <p class="text-muted mb-0">Solo cuentan como venta los pedidos entregados (cobrados).</p>
+    </div>
+    <form method="get" class="d-flex gap-2 align-items-end flex-wrap">
+        <div>
+            <label for="desde" class="form-label small mb-1">Desde</label>
+            <input type="date" id="desde" name="desde" class="form-control" value="@Model.Desde.ToString("yyyy-MM-dd")" />
+        </div>
+        <div>
+            <label for="hasta" class="form-label small mb-1">Hasta</label>
+            <input type="date" id="hasta" name="hasta" class="form-control" value="@Model.Hasta.ToString("yyyy-MM-dd")" />
+        </div>
+        <button type="submit" class="btn btn-primary">Ver</button>
+    </form>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3"><div class="card card-body"><div class="text-muted small">Total vendido</div><div class="fs-3 fw-bold">S/ @r.TotalVendido.ToString("0.00")</div></div></div>
+    <div class="col-6 col-lg-3"><div class="card card-body"><div class="text-muted small">Pedidos entregados</div><div class="fs-3 fw-bold">@r.PedidosEntregados</div></div></div>
+    <div class="col-6 col-lg-3"><div class="card card-body"><div class="text-muted small">Ticket promedio</div><div class="fs-3 fw-bold">S/ @r.TicketPromedio.ToString("0.00")</div></div></div>
+    <div class="col-6 col-lg-3"><div class="card card-body"><div class="text-muted small">Anulados / en curso</div><div class="fs-3 fw-bold">@r.PedidosAnulados / @r.PedidosEnCurso</div></div></div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-white fw-semibold">Salón vs. delivery</div>
+            <div class="card-body">
+                @if (!r.PorCanal.Any()) { <p class="text-muted mb-0">Sin ventas en el rango.</p> }
+                @foreach (var c in r.PorCanal)
+                {
+                    var pct = Porcentaje(c.Total, r.TotalVendido);
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between"><strong>@c.Canal</strong><span>S/ @c.Total.ToString("0.00") · @c.Pedidos pedidos · @pct%</span></div>
+                        <div class="progress" role="progressbar" aria-label="@c.Canal" aria-valuenow="@pct" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar" style="width:@pct%; background-color: var(--ag-primary)"></div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-white fw-semibold">Sabores más pedidos (porciones)</div>
+            <div class="card-body">
+                @if (!r.Sabores.Any()) { <p class="text-muted mb-0">Sin datos.</p> }
+                @foreach (var s in r.Sabores)
+                {
+                    var pct = maxSabor == 0 ? 0 : s.Porciones * 100 / maxSabor;
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small"><span>@s.Sabor</span><strong>@s.Porciones</strong></div>
+                        <div class="progress" style="height:.6rem" role="progressbar" aria-label="@s.Sabor" aria-valuenow="@s.Porciones" aria-valuemin="0" aria-valuemax="@maxSabor">
+                            <div class="progress-bar bg-warning" style="width:@pct%"></div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header bg-white fw-semibold">Productos vendidos</div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Producto</th><th class="text-end">Cantidad</th><th class="text-end">Importe</th></tr></thead>
+                    <tbody>
+                        @foreach (var p in r.Productos)
+                        {
+                            <tr><td>@p.Producto</td><td class="text-end">@p.Cantidad</td><td class="text-end">S/ @p.Importe.ToString("0.00")</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-header bg-white fw-semibold">Por medio de pago</div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Medio</th><th class="text-end">Pedidos</th><th class="text-end">Total</th></tr></thead>
+                    <tbody>
+                        @foreach (var t in r.PorTipoPago)
+                        {
+                            <tr><td>@t.TipoPago</td><td class="text-end">@t.Pedidos</td><td class="text-end">S/ @t.Total.ToString("0.00")</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

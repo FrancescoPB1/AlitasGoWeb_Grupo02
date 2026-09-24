@@ -5,6 +5,8 @@ VisualStudioVersion = 17.14.37502.11 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlitasGoWeb", "AlitasGoWeb\AlitasGoWeb.csproj", "{5795ADCF-3A2C-4EAF-AFC5-54E51F026A9E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlitasGoWeb.Tests", "AlitasGoWeb.Tests\AlitasGoWeb.Tests.csproj", "{A7B2C46A-48C2-41E9-9EBF-900ABC401474}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{5795ADCF-3A2C-4EAF-AFC5-54E51F026A9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5795ADCF-3A2C-4EAF-AFC5-54E51F026A9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5795ADCF-3A2C-4EAF-AFC5-54E51F026A9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7B2C46A-48C2-41E9-9EBF-900ABC401474}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7B2C46A-48C2-41E9-9EBF-900ABC401474}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7B2C46A-48C2-41E9-9EBF-900ABC401474}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7B2C46A-48C2-41E9-9EBF-900ABC401474}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

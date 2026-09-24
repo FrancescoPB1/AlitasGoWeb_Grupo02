@@ -1,0 +1,59 @@
+@model List<Pedido>
+@{
+    var porDespachar = Model.Where(p => p.IdEstadoPedido == Estados.Listo).ToList();
+    var enCamino = Model.Where(p => p.IdEstadoPedido == Estados.EnReparto).ToList();
+}
+<div data-parcial>
+    @foreach (var (titulo, lista) in new[] { ("Por despachar", porDespachar), ("En camino", enCamino) })
+    {
+        <h2 class="h5 mb-3">@titulo <span class="badge bg-secondary">@lista.Count</span></h2>
+        @if (!lista.Any())
+        {
+            <p class="text-muted">No hay pedidos.</p>
+        }
+        <div class="row g-3 mb-4">
+            @foreach (var p in lista)
+            {
+                var d = p.PedidoDelivery;
+                <div class="col-md-6 col-xl-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <span class="fw-bold fs-5">#@p.IdPedido</span>
+                            <partial name="_EstadoBadge" model="p.IdEstadoPedido" />
+                        </div>
+                        <div class="card-body">
+                            <div class="fw-semibold">@p.Cliente?.Nombre @p.Cliente?.ApellidoPaterno</div>
+                            <div><i class="bi bi-geo-alt" aria-hidden="true"></i> @d?.Direccion <span class="text-muted">(@d?.ZonaDelivery?.NombreZona)</span></div>
+                            @if (!string.IsNullOrEmpty(d?.Referencia))
+                            {
+                                <div class="small text-muted"><i class="bi bi-signpost" aria-hidden="true"></i> @d.Referencia</div>
+                            }
+                            <div><i class="bi bi-telephone" aria-hidden="true"></i> <a href="tel:@d?.Telefono">@d?.Telefono</a></div>
+                            <ul class="small mt-2 mb-2 ps-3">
+                                @foreach (var l in p.DetallePedidos)
+                                {
+                                    <li>@l.Cantidad × @l.Producto?.Nombre @(l.Sabor != null ? "(" + l.Sabor.Nombre + ")" : "")</li>
+                                }
+                            </ul>
+                            <div class="fs-5 fw-bold">Cobrar: S/ @p.Total.ToString("0.00")</div>
+                        </div>
+                        <div class="card-footer bg-white border-0">
+                            @if (p.IdEstadoPedido == Estados.Listo)
+                            {
+                                <form asp-action="Despachar" asp-route-id="@p.IdPedido" method="post" class="d-grid">
+                                    <button type="submit" class="btn btn-primary"><i class="bi bi-send" aria-hidden="true"></i> Salir a entregar</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <a asp-action="Entregar" asp-route-id="@p.IdPedido" class="btn btn-success w-100">
+                                    <i class="bi bi-cash-coin" aria-hidden="true"></i> Entregado y cobrado
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

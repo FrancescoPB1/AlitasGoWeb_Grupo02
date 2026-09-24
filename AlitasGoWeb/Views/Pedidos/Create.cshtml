@@ -1,223 +1,227 @@
-﻿@model AlitasGoWeb.ViewModels.PedidoCreateVM
-
+@model PedidoCreateVM
 @{
-    ViewData["Title"] = "Nuevo pedido";
+    var esEdicion = Model.IdPedido > 0;
+    ViewData["Title"] = esEdicion ? $"Editar pedido #{Model.IdPedido}" : "Nuevo pedido";
 }
 
-<h1>Nuevo pedido</h1>
+<div class="page-header mb-4">
+    <h1 class="h3">
+        <i class="bi @(esEdicion ? "bi-pencil-square" : "bi-plus-square")" aria-hidden="true"></i> @ViewData["Title"]
+    </h1>
+    <p class="text-muted mb-0">
+        Los precios, promociones y el total se calculan en el servidor al guardar.
+        @if (esEdicion)
+        {
+            <span>Solo se puede editar mientras el pedido está <strong>Recibido</strong>.</span>
+        }
+    </p>
+</div>
 
-<form asp-action="Create" method="post">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<form asp-action="@(esEdicion ? "Edit" : "Create")" asp-route-id="@(esEdicion ? Model.IdPedido : null)" method="post" data-una-vez>
+    <div asp-validation-summary="All" class="alert alert-danger py-2" role="alert"></div>
 
-    <div class="row">
-        <div class="col-md-6">
-            <div class="form-group">
-                <label asp-for="IdCliente"></label>
-                <select asp-for="IdCliente" asp-items="Model.Clientes" class="form-control">
-                    <option value="">-- Selecciona --</option>
-                </select>
-                <span asp-validation-for="IdCliente" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label asp-for="IdCanalAtencion"></label>
-                <select asp-for="IdCanalAtencion" asp-items="Model.Canales"
-                        class="form-control" id="canal">
-                    <option value="">-- Selecciona --</option>
-                </select>
-                <span asp-validation-for="IdCanalAtencion" class="text-danger"></span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Local -->
-    <div id="bloqueLocal" style="display:none" class="row">
-        <div class="col-md-6">
-            <div class="form-group">
-                <label asp-for="IdNroMesa"></label>
-                <select asp-for="IdNroMesa" asp-items="Model.Mesas" class="form-control">
-                    <option value="">-- Selecciona --</option>
-                </select>
-                <span asp-validation-for="IdNroMesa" class="text-danger"></span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Delivery -->
-    <div id="bloqueDelivery" style="display:none" class="row">
-        <div class="col-md-6">
-            <div class="form-group">
-                <label asp-for="IdZonaDelivery"></label>
-                <select asp-for="IdZonaDelivery" asp-items="Model.Zonas" class="form-control">
-                    <option value="">-- Selecciona --</option>
-                </select>
-                <span asp-validation-for="IdZonaDelivery" class="text-danger"></span>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label asp-for="Direccion"></label>
-                <input asp-for="Direccion" class="form-control" />
-                <span asp-validation-for="Direccion" class="text-danger"></span>
-            </div>
-        </div>
-    </div>
-
-    <h3>Productos</h3>
-    <table class="table" id="tablaDetalles">
-        <thead>
-            <tr>
-                <th style="width:35%">Producto</th>
-                <th style="width:25%">Sabor</th>
-                <th style="width:20%">Cantidad</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody id="filasDetalle">
-            @for (int i = 0; i < Model.Detalles.Count; i++)
-            {
-                var det = Model.Detalles[i];
-                <tr class="fila-detalle">
-                    <td>
-                        <select name="Detalles[@i].IdProducto" class="form-control sel-producto">
-                            <option value="">-- Producto --</option>
-                            @foreach (var p in Model.Productos)
-                            {
-                                var idProd = int.Parse(p.Value);
-                                var requiere = Model.ProductoRequiereSabor.ContainsKey(idProd)
-                                && Model.ProductoRequiereSabor[idProd];
-                                var sel = det.IdProducto == idProd ? "selected" : null;
-                                <option value="@p.Value"
-                                        data-requiere-sabor="@requiere.ToString().ToLower()"
-                                        selected="@sel">
-                                    @p.Text
-                                </option>
-                            }
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-7">
+                    <label asp-for="IdCliente" class="form-label"></label>
+                    <div class="input-group">
+                        <select asp-for="IdCliente" asp-items="Model.Clientes" class="form-select">
+                            <option value="">-- Selecciona --</option>
                         </select>
-                    </td>
-                    <td>
-                        <select name="Detalles[@i].IdSabor" class="form-control sel-sabor">
-                            <option value="">-- Sabor --</option>
-                            @foreach (var s in Model.Sabores)
-                            {
-                                var idSab = int.Parse(s.Value);
-                                var selS = det.IdSabor == idSab ? "selected" : null;
-                                <option value="@s.Value" selected="@selS">@s.Text</option>
-                            }
+                        @if (!esEdicion)
+                        {
+                            <a asp-controller="Clientes" asp-action="Create" asp-route-volverAPedido="true"
+                               class="btn btn-outline-secondary" title="Registrar cliente nuevo">
+                                <i class="bi bi-person-plus" aria-hidden="true"></i> Nuevo
+                            </a>
+                        }
+                    </div>
+                    <span asp-validation-for="IdCliente" class="text-danger small"></span>
+                </div>
+                <div class="col-md-5">
+                    <label asp-for="IdCanalAtencion" class="form-label"></label>
+                    @if (esEdicion)
+                    {
+                        <input type="hidden" asp-for="IdCanalAtencion" />
+                        <select id="canal" asp-items="Model.Canales" class="form-select" disabled
+                                asp-for="IdCanalAtencion">
                         </select>
-                    </td>
-                    <td>
-                        <div class="input-group">
-                            <button type="button" class="btn btn-outline-secondary btn-menos">−</button>
-                            <input name="Detalles[@i].Cantidad"
-                                   type="number" min="1"
-                                   value="@det.Cantidad"
-                                   class="form-control text-center" />
-                            <button type="button" class="btn btn-outline-secondary btn-mas">+</button>
-                        </div>
-                    </td>
-                    <td>
-                        <button type="button" class="btn btn-danger btn-quitar">X</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                    }
+                    else
+                    {
+                        <select id="canal" asp-for="IdCanalAtencion" asp-items="Model.Canales" class="form-select">
+                            <option value="">-- Selecciona --</option>
+                        </select>
+                    }
+                    <span asp-validation-for="IdCanalAtencion" class="text-danger small"></span>
+                </div>
+            </div>
 
-    <button type="button" id="btnAgregar" class="btn btn-secondary">+ Agregar línea</button>
+            <!-- Salón -->
+            <div id="bloqueLocal" class="row g-3 mt-1 d-none">
+                <div class="col-md-5">
+                    <label asp-for="IdNroMesa" class="form-label"></label>
+                    <select asp-for="IdNroMesa" asp-items="Model.Mesas" class="form-select">
+                        <option value="">-- Selecciona --</option>
+                    </select>
+                </div>
+            </div>
 
-    <hr />
+            <!-- Delivery -->
+            <div id="bloqueDelivery" class="row g-3 mt-1 d-none">
+                <div class="col-md-5">
+                    <label asp-for="IdZonaDelivery" class="form-label"></label>
+                    <select asp-for="IdZonaDelivery" asp-items="Model.Zonas" class="form-select">
+                        <option value="">-- Selecciona --</option>
+                    </select>
+                </div>
+                <div class="col-md-7">
+                    <label asp-for="Direccion" class="form-label"></label>
+                    <input asp-for="Direccion" class="form-control" autocomplete="off" />
+                    <span asp-validation-for="Direccion" class="text-danger small"></span>
+                </div>
+                <div class="col-md-7">
+                    <label asp-for="Referencia" class="form-label"></label>
+                    <input asp-for="Referencia" class="form-control" placeholder="Ej.: casa del portón azul, frente a la bodega" autocomplete="off" />
+                    <span asp-validation-for="Referencia" class="text-danger small"></span>
+                </div>
+                <div class="col-md-5">
+                    <label asp-for="Telefono" class="form-label"></label>
+                    <input asp-for="Telefono" class="form-control" inputmode="tel" autocomplete="off" />
+                    <span asp-validation-for="Telefono" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <button type="submit" class="btn btn-primary">Registrar pedido</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    <div class="card mb-3">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">Detalle del pedido</span>
+            <button type="button" id="btnAgregar" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar producto
+            </button>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th style="width:14rem">Sabor</th>
+                        <th style="width:7rem">Cantidad</th>
+                        <th style="width:4rem"><span class="visually-hidden">Quitar</span></th>
+                    </tr>
+                </thead>
+                <tbody id="filasDetalle">
+                    @for (var i = 0; i < Model.Detalles.Count; i++)
+                    {
+                        <tr data-fila>
+                            <td>
+                                <select asp-for="Detalles[i].IdProducto" asp-items="Model.Productos" class="form-select js-producto" aria-label="Producto">
+                                    <option value="0">-- Selecciona --</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select asp-for="Detalles[i].IdSabor" asp-items="Model.Sabores" class="form-select js-sabor" aria-label="Sabor">
+                                    <option value="">-- Sabor --</option>
+                                </select>
+                            </td>
+                            <td>
+                                <input asp-for="Detalles[i].Cantidad" type="number" min="1" max="@PedidoService.CantidadMaximaPorLinea" class="form-control" aria-label="Cantidad" />
+                            </td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-outline-danger btn-sm js-quitar-fila" title="Quitar fila">
+                                    <i class="bi bi-x-lg" aria-hidden="true"></i><span class="visually-hidden">Quitar</span>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <template id="plantillaFila">
+        <tr data-fila>
+            <td>
+                <select name="Detalles[__i__].IdProducto" id="Detalles___i____IdProducto" class="form-select js-producto" aria-label="Producto">
+                    <option value="0">-- Selecciona --</option>
+                    @foreach (var p in Model.Productos)
+                    {
+                        <option value="@p.Value">@p.Text</option>
+                    }
+                </select>
+            </td>
+            <td>
+                <select name="Detalles[__i__].IdSabor" id="Detalles___i____IdSabor" class="form-select js-sabor" aria-label="Sabor" disabled>
+                    <option value="">-- Sabor --</option>
+                    @foreach (var s in Model.Sabores)
+                    {
+                        <option value="@s.Value">@s.Text</option>
+                    }
+                </select>
+            </td>
+            <td>
+                <input name="Detalles[__i__].Cantidad" id="Detalles___i____Cantidad" type="number" min="1" max="@PedidoService.CantidadMaximaPorLinea" value="1" class="form-control" aria-label="Cantidad" />
+            </td>
+            <td class="text-end">
+                <button type="button" class="btn btn-outline-danger btn-sm js-quitar-fila" title="Quitar fila">
+                    <i class="bi bi-x-lg" aria-hidden="true"></i><span class="visually-hidden">Quitar</span>
+                </button>
+            </td>
+        </tr>
+    </template>
+
+    <div class="d-flex justify-content-between">
+        <a asp-action="@(esEdicion ? "Details" : "Index")" asp-route-id="@(esEdicion ? Model.IdPedido : null)" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver
+        </a>
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-send" aria-hidden="true"></i> @(esEdicion ? "Guardar cambios" : "Registrar y enviar a cocina")
+        </button>
+    </div>
 </form>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // --- Local / Delivery ---
-        const canal = document.getElementById('canal');
-        const bloqueLocal = document.getElementById('bloqueLocal');
-        const bloqueDelivery = document.getElementById('bloqueDelivery');
+        (function () {
+            "use strict";
+            var requiereSabor = @Json.Serialize(Model.ProductoRequiereSabor);
+            var canal = document.getElementById('canal');
 
-        function actualizarCanal() {
-            const val = canal.value;
-            bloqueLocal.style.display = val === '1' ? '' : 'none';
-            bloqueDelivery.style.display = val === '2' ? '' : 'none';
-        }
-        canal.addEventListener('change', actualizarCanal);
-        actualizarCanal();
-
-        // --- Mostrar/ocultar sabor según producto ---
-        function actualizarSabor(fila) {
-            const selProd = fila.querySelector('.sel-producto');
-            const selSabor = fila.querySelector('.sel-sabor');
-            const opt = selProd.selectedOptions[0];
-            const requiere = opt && opt.dataset.requiereSabor === 'true';
-
-            if (requiere) {
-                selSabor.style.display = '';
-                selSabor.disabled = false;
-            } else {
-                selSabor.style.display = 'none';
-                selSabor.disabled = true;
-                selSabor.value = '';
+            function actualizarCanal() {
+                var valor = canal.value;
+                document.getElementById('bloqueLocal').classList.toggle('d-none', valor !== '@Canales.Salon');
+                document.getElementById('bloqueDelivery').classList.toggle('d-none', valor !== '@Canales.Delivery');
             }
-        }
 
-        document.querySelectorAll('.fila-detalle').forEach(actualizarSabor);
-
-        document.getElementById('filasDetalle').addEventListener('change', function (e) {
-            if (e.target.classList.contains('sel-producto')) {
-                actualizarSabor(e.target.closest('tr'));
+            // El sabor solo se habilita si el producto lo requiere (un select deshabilitado no se envía).
+            function actualizarSabor(fila) {
+                var producto = fila.querySelector('.js-producto').value;
+                var sabor = fila.querySelector('.js-sabor');
+                var requiere = requiereSabor[producto] === true;
+                sabor.disabled = !requiere;
+                sabor.required = requiere;
+                if (!requiere) sabor.value = '';
             }
-        });
 
-        // --- + / − cantidad ---
-        document.getElementById('filasDetalle').addEventListener('click', function (e) {
-            const grupo = e.target.closest('.input-group');
-            if (!grupo) return;
-            const input = grupo.querySelector('input');
+            canal.addEventListener('change', actualizarCanal);
+            actualizarCanal();
 
-            if (e.target.classList.contains('btn-mas')) {
-                const v = parseInt(input.value) || 0;
-                input.value = v + 1;
-            }
-            if (e.target.classList.contains('btn-menos')) {
-                const v = parseInt(input.value) || 1;
-                input.value = v > 1 ? v - 1 : 1;
-            }
-        });
-
-        // --- Agregar línea (cantidad nueva = 1) ---
-        let index = @Model.Detalles.Count;
-        document.getElementById('btnAgregar').addEventListener('click', function () {
-            const tbody = document.getElementById('filasDetalle');
-            const nueva = tbody.querySelector('.fila-detalle').cloneNode(true);
-
-            nueva.querySelectorAll('select, input').forEach(el => {
-                el.name = el.name.replace(/Detalles\[\d+\]/, `Detalles[${index}]`);
-                if (el.tagName === 'SELECT') {
-                    el.selectedIndex = 0;
-                    el.disabled = false;
-                }
-                if (el.tagName === 'INPUT') {
-                    el.value = 1;
-                }
+            var cuerpo = document.getElementById('filasDetalle');
+            cuerpo.querySelectorAll('[data-fila]').forEach(actualizarSabor);
+            cuerpo.addEventListener('change', function (e) {
+                if (e.target.classList.contains('js-producto')) actualizarSabor(e.target.closest('[data-fila]'));
             });
 
-            tbody.appendChild(nueva);
-            actualizarSabor(nueva);
-            index++;
-        });
-
-        // --- Quitar línea ---
-        document.getElementById('filasDetalle').addEventListener('click', function (e) {
-            if (e.target.classList.contains('btn-quitar')) {
-                const filas = document.querySelectorAll('.fila-detalle');
-                if (filas.length > 1) e.target.closest('tr').remove();
-            }
-        });
+            AlitasGo.filasDinamicas({
+                cuerpo: 'filasDetalle',
+                plantilla: 'plantillaFila',
+                botonAgregar: 'btnAgregar',
+                prefijo: 'Detalles',
+                alAgregar: actualizarSabor
+            });
+        })();
     </script>
 }

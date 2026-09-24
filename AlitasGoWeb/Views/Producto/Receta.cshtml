@@ -1,0 +1,78 @@
+@model RecetaVM
+@{
+    ViewData["Title"] = $"Receta · {Model.Producto.Nombre}";
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-action="Index">Productos</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Receta</li>
+    </ol>
+</nav>
+
+<div class="page-header mb-4">
+    <h1 class="h3"><i class="bi bi-list-check" aria-hidden="true"></i> Receta de «@Model.Producto.Nombre»</h1>
+    <p class="text-muted mb-0">
+        Cuánto insumo se descuenta por cada unidad vendida. Una línea con sabor solo se consume cuando se pide ese sabor.
+    </p>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead><tr><th>Insumo</th><th>Sabor</th><th class="text-end">Cantidad</th><th></th></tr></thead>
+                    <tbody>
+                        @if (!Model.Lineas.Any())
+                        {
+                            <tr><td colspan="4" class="text-center text-muted py-4">Este producto aún no descuenta insumos.</td></tr>
+                        }
+                        @foreach (var r in Model.Lineas)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@r.Insumo?.Nombre</td>
+                                <td>@(r.Sabor?.Nombre ?? "Todos")</td>
+                                <td class="text-end">@r.CantidadUsada.ToString("0.##") @r.UnidadMedida</td>
+                                <td class="text-end">
+                                    <form asp-action="QuitarReceta" asp-route-id="@Model.Producto.IdProducto" method="post">
+                                        <input type="hidden" name="idReceta" value="@r.IdProductoInsumo" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Quitar">
+                                            <i class="bi bi-x-lg" aria-hidden="true"></i><span class="visually-hidden">Quitar</span>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header bg-white fw-semibold">Agregar insumo</div>
+            <div class="card-body">
+                <form asp-action="AgregarReceta" asp-route-id="@Model.Producto.IdProducto" method="post">
+                    <div class="mb-3">
+                        <label asp-for="IdInsumo" class="form-label"></label>
+                        <select asp-for="IdInsumo" asp-items="Model.Insumos" class="form-select" required>
+                            <option value="">-- Selecciona --</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="IdSabor" class="form-label"></label>
+                        <select asp-for="IdSabor" asp-items="Model.Sabores" class="form-select">
+                            <option value="">Todos los sabores</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Cantidad" class="form-label"></label>
+                        <input asp-for="Cantidad" type="number" step="0.01" min="0.01" class="form-control" required />
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

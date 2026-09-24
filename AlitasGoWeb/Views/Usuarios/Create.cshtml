@@ -1,0 +1,51 @@
+@model UsuarioCreateVM
+@{
+    ViewData["Title"] = "Nuevo usuario";
+}
+
+<div class="page-header mb-4">
+    <h1 class="h3"><i class="bi bi-person-plus" aria-hidden="true"></i> Nuevo usuario</h1>
+    <p class="text-muted mb-0">Contraseña de al menos 10 caracteres, con número, mayúscula y símbolo.</p>
+</div>
+
+<div class="card" style="max-width: 36rem;">
+    <div class="card-body">
+        <form asp-action="Create" method="post" data-una-vez>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" autocomplete="off" autofocus />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Rol" class="form-label"></label>
+                <select asp-for="Rol" class="form-select">
+                    <option value="">-- Selecciona --</option>
+                    @foreach (var rol in RolesSistema.Todos)
+                    {
+                        <option value="@rol">@rol</option>
+                    }
+                </select>
+                <span asp-validation-for="Rol" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" autocomplete="new-password" />
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="ConfirmarPassword" class="form-label"></label>
+                <input asp-for="ConfirmarPassword" class="form-control" autocomplete="new-password" />
+                <span asp-validation-for="ConfirmarPassword" class="text-danger small"></span>
+            </div>
+            <div class="d-flex justify-content-between">
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Crear usuario</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

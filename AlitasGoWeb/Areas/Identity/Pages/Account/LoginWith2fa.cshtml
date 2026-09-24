@@ -1,0 +1,28 @@
+@page
+@model LoginWith2faModel
+@{
+    ViewData["Title"] = "Verificación en dos pasos";
+}
+
+<div class="card mx-auto" style="max-width: 26rem;">
+    <div class="card-body p-4">
+        <h1 class="h4 mb-1 text-center"><i class="bi bi-shield-lock" aria-hidden="true"></i> Verificación en dos pasos</h1>
+        <p class="text-muted text-center mb-4">Escribe el código de 6 dígitos que muestra tu app autenticadora.</p>
+        <form method="post" asp-route-returnUrl="@Model.ReturnUrl" data-una-vez>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+            <div class="mb-3">
+                <label asp-for="Input.TwoFactorCode" class="form-label"></label>
+                <input asp-for="Input.TwoFactorCode" class="form-control form-control-lg text-center" autocomplete="one-time-code" inputmode="numeric" autofocus />
+                <span asp-validation-for="Input.TwoFactorCode" class="text-danger small"></span>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 btn-lg">Verificar</button>
+        </form>
+        <p class="small text-center mt-3 mb-0">
+            ¿Perdiste el acceso a la app? <a asp-page="./LoginWithRecoveryCode" asp-route-returnUrl="@Model.ReturnUrl">Usa un código de recuperación</a>.
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
