@@ -1,0 +1,29 @@
+@model List<MesaSalonVM>
+@{
+    ViewData["Title"] = "Salón";
+}
+
+<div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h1 class="h3"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> Salón</h1>
+        <p class="text-muted mb-0">El estado de las mesas se actualiza solo, en tiempo real.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a asp-controller="Pedidos" asp-action="Create" asp-route-canal="@Canales.Delivery" class="btn btn-outline-primary">
+            <i class="bi bi-bicycle" aria-hidden="true"></i> Nuevo delivery
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Actualizar</a>
+    </div>
+</div>
+
+<div id="contenedorMesas">
+    <partial name="_Mesas" model="Model" />
+</div>
+
+@section Scripts {
+    <script>
+        AlitasGo.refrescarAlCambiar('contenedorMesas',
+            function () { return '@Url.Action("Mesas")'; },
+            function (aviso) { return aviso.idCanal === @Canales.Salon; });
+    </script>
+}

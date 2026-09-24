@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AlitasGoWeb.Models
@@ -32,5 +32,8 @@ namespace AlitasGoWeb.Models
 
         [ForeignKey("IdSabor")]
         public virtual Sabor? Sabor { get; set; }
+
+        // GRASP Experto: conoce cantidad y precio.
+        public decimal ImporteSinDescuento() => PrecioUnitario * Cantidad;
     }
 }

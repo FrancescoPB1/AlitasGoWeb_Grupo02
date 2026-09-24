@@ -1,0 +1,43 @@
+@model Pedido
+<div class="table-responsive">
+    <table class="table align-middle mb-0">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Sabor</th>
+                <th class="text-end">Cant.</th>
+                <th class="text-end">P. unit.</th>
+                <th class="text-end">Descuento</th>
+                <th class="text-end">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var d in Model.DetallePedidos)
+            {
+                <tr>
+                    <td class="fw-semibold">@d.Producto?.Nombre</td>
+                    <td>@(d.Sabor?.Nombre ?? "—")</td>
+                    <td class="text-end">@d.Cantidad</td>
+                    <td class="text-end">S/ @d.PrecioUnitario.ToString("0.00")</td>
+                    <td class="text-end @(d.Descuento > 0 ? "text-success fw-semibold" : "text-muted")">
+                        @(d.Descuento > 0 ? "- S/ " + d.Descuento.ToString("0.00") : "—")
+                    </td>
+                    <td class="text-end">S/ @d.SubTotal.ToString("0.00")</td>
+                </tr>
+            }
+            @if (Model.PedidoDelivery != null)
+            {
+                <tr>
+                    <td colspan="5" class="text-end text-muted">Costo de envío (@Model.PedidoDelivery.ZonaDelivery?.NombreZona)</td>
+                    <td class="text-end">S/ @Model.PedidoDelivery.CostoEnvio.ToString("0.00")</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="5" class="text-end fw-bold">Total (IGV incluido)</td>
+                <td class="text-end fw-bold fs-5">S/ @Model.Total.ToString("0.00")</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>

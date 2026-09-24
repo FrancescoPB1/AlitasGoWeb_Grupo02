@@ -1,148 +1,130 @@
-﻿@using System.Linq
-@model AlitasGoWeb.Models.Pedido
-
+@model Pedido
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService Autorizacion
 @{
-    ViewData["Title"] = "Detalle del pedido";
-    int estado = Model.IdEstadoPedido;
+    ViewData["Title"] = $"Pedido #{Model.IdPedido}";
+    var puedeAnular = MaquinaEstadosPedido.PuedeAnular(Model.IdEstadoPedido)
+                      && (await Autorizacion.AuthorizeAsync(User, Politicas.AnularPedido)).Succeeded;
+    var esAdminSinMfa = User.IsInRole(RolesSistema.Administrador) && !puedeAnular && MaquinaEstadosPedido.PuedeAnular(Model.IdEstadoPedido);
 }
 
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
-
-<h1>Pedido #@Model.IdPedido</h1>
-
-<dl class="row">
-    <dt class="col-sm-2">Fecha</dt>
-    <dd class="col-sm-10">@Model.Fecha.ToString("dd/MM/yyyy HH:mm")</dd>
-
-    <dt class="col-sm-2">Cliente</dt>
-    <dd class="col-sm-10">@Model.Cliente?.Nombre @Model.Cliente?.ApellidoPaterno</dd>
-
-    <dt class="col-sm-2">Canal</dt>
-    <dd class="col-sm-10">@Model.CanalAtencion?.Nombre</dd>
-
-    <dt class="col-sm-2">Estado</dt>
-    <dd class="col-sm-10">
-        <span class="badge bg-info">@Model.EstadoPedido?.Nombre</span>
-    </dd>
-
-    @if (Model.PedidoDelivery != null)
-    {
-        <dt class="col-sm-2">Dirección</dt>
-        <dd class="col-sm-10">@Model.PedidoDelivery.Direccion</dd>
-
-        <dt class="col-sm-2">Zona</dt>
-        <dd class="col-sm-10">
-            @Model.PedidoDelivery.ZonaDelivery?.NombreZona
-            (S/ @Model.PedidoDelivery.ZonaDelivery?.CostoDelivery.ToString("N2"))
-        </dd>
-    }
-
-    @if (Model.PedidoLocal != null)
-    {
-        <dt class="col-sm-2">Mesa</dt>
-        <dd class="col-sm-10">@Model.PedidoLocal.NroMesa?.NumeroMesa</dd>
-    }
-</dl>
-
-<h3>Detalle</h3>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Producto</th>
-            <th>Sabor</th>
-            <th>Cantidad</th>
-            <th>Precio</th>
-            <th>Descuento</th>
-            <th>SubTotal</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var d in Model.DetallePedidos)
+<div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 d-flex align-items-center gap-2">
+            <i class="bi bi-receipt" aria-hidden="true"></i> Pedido #@Model.IdPedido
+            <partial name="_EstadoBadge" model="Model.IdEstadoPedido" />
+        </h1>
+        <p class="text-muted mb-0">Registrado @Model.Fecha.ToString("dd/MM/yyyy HH:mm") por @(Model.UsuarioRegistro ?? "—")</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        @if (MaquinaEstadosPedido.PuedeEditar(Model.IdEstadoPedido))
         {
-            <tr>
-                <td>@d.Producto?.Nombre</td>
-                <td>@d.Sabor?.Nombre</td>
-                <td>@d.Cantidad</td>
-                <td>S/ @d.PrecioUnitario.ToString("N2")</td>
-                <td>S/ @d.Descuento.ToString("N2")</td>
-                <td>S/ @d.SubTotal.ToString("N2")</td>
-            </tr>
+            <a asp-action="Edit" asp-route-id="@Model.IdPedido" class="btn btn-outline-primary">
+                <i class="bi bi-pencil" aria-hidden="true"></i> Editar
+            </a>
         }
-    </tbody>
-    <tfoot>
-        <tr>
-            <th colspan="5" class="text-end">Total</th>
-            <th>S/ @Model.Total.ToString("N2")</th>
-        </tr>
-    </tfoot>
-</table>
-
-<hr />
-
-<h4>Acciones</h4>
-<div class="d-flex gap-2 flex-wrap">
-
-    @if (estado == 1)
-    {
-        <form asp-action="CambiarEstado" method="post">
-            <input type="hidden" name="id" value="@Model.IdPedido" />
-            <input type="hidden" name="nuevoEstado" value="2" />
-            <button class="btn btn-primary">Enviar a cocina</button>
-        </form>
-    }
-
-    @if (estado == 2)
-    {
-        <form asp-action="CambiarEstado" method="post">
-            <input type="hidden" name="id" value="@Model.IdPedido" />
-            <input type="hidden" name="nuevoEstado" value="3" />
-            <button class="btn btn-success">Marcar como listo</button>
-        </form>
-    }
-
-    @if (estado == 3 && Model.PedidoDelivery != null)
-    {
-        <form asp-action="CambiarEstado" method="post">
-            <input type="hidden" name="id" value="@Model.IdPedido" />
-            <input type="hidden" name="nuevoEstado" value="4" />
-            <button class="btn btn-warning">Enviar a repartidor</button>
-        </form>
-    }
-
-    @if (estado == 3 && Model.PedidoLocal != null)
-    {
-        <form asp-action="CambiarEstado" method="post">
-            <input type="hidden" name="id" value="@Model.IdPedido" />
-            <input type="hidden" name="nuevoEstado" value="5" />
-            <button class="btn btn-success">Servido en mesa</button>
-        </form>
-    }
-
-    @if (estado == 4)
-    {
-        <form asp-action="CambiarEstado" method="post">
-            <input type="hidden" name="id" value="@Model.IdPedido" />
-            <input type="hidden" name="nuevoEstado" value="5" />
-            <button class="btn btn-success">Confirmar entrega</button>
-        </form>
-    }
-
-    @{
-        bool puedeAnular = Model.PedidoDelivery != null
-        ? (estado != 5 && estado != 6)
-        : (estado == 1 || estado == 2);
-    }
-
-    @if (puedeAnular)
-    {
-        <form asp-action="Anular" asp-route-id="@Model.IdPedido" method="post"
-              onsubmit="return confirm('¿Anular este pedido?');">
-            <button class="btn btn-danger">Anular pedido</button>
-        </form>
-    }
-
-    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+        @if (!Model.EsDelivery && Model.IdEstadoPedido == Estados.Listo)
+        {
+            <form asp-action="MarcarServido" asp-route-id="@Model.IdPedido" method="post">
+                <button type="submit" class="btn btn-success"><i class="bi bi-cup-hot" aria-hidden="true"></i> Marcar servido</button>
+            </form>
+        }
+        @if (MaquinaEstadosPedido.PuedeCobrar(Model.IdEstadoPedido, Model.EsDelivery) && !Model.EsDelivery)
+        {
+            <a asp-action="Cobrar" asp-route-id="@Model.IdPedido" class="btn btn-primary">
+                <i class="bi bi-cash-coin" aria-hidden="true"></i> Cobrar
+            </a>
+        }
+        @if (Model.Pago != null)
+        {
+            <a asp-action="Comprobante" asp-route-id="@Model.IdPedido" class="btn btn-outline-secondary">
+                <i class="bi bi-printer" aria-hidden="true"></i> Comprobante
+            </a>
+        }
+        <a asp-action="Index" asp-route-fecha="@Model.Fecha.ToString("yyyy-MM-dd")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver
+        </a>
+    </div>
 </div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header bg-white fw-semibold">Datos del pedido</div>
+            <div class="card-body">
+                <partial name="_ResumenPedido" model="Model" />
+                @if (Model.IdEstadoPedido == Estados.Anulado)
+                {
+                    <div class="alert alert-danger mt-3 mb-0">
+                        <strong>Motivo de anulación:</strong> @Model.MotivoAnulacion
+                    </div>
+                }
+                @if (Model.Pago != null)
+                {
+                    <div class="alert alert-success mt-3 mb-0 small">
+                        <strong>@Model.Pago.TipoComprobante @Model.Pago.NumeroComprobante</strong><br />
+                        @Model.Pago.TipoPago?.Nombre · @Model.Pago.FechaPago.ToString("dd/MM/yyyy HH:mm")
+                        · cobró @Model.Pago.UsuarioCobro
+                    </div>
+                }
+                @if (Model.EsDelivery && Model.IdEstadoPedido is Estados.Listo or Estados.EnReparto)
+                {
+                    <div class="alert alert-info mt-3 mb-0 small">
+                        El despacho y el cobro contra entrega se registran desde
+                        <a asp-controller="Reparto" asp-action="Index">Reparto</a>.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-white fw-semibold">Detalle</div>
+            <partial name="_DetalleLineas" model="Model" />
+        </div>
+
+        @if (puedeAnular)
+        {
+            <div class="card mt-3 border border-danger">
+                <div class="card-body">
+                    <h2 class="h6 text-danger"><i class="bi bi-x-octagon" aria-hidden="true"></i> Anular pedido</h2>
+                    <p class="small text-muted mb-2">
+                        @(MaquinaEstadosPedido.DebeReponerStock(Model.IdEstadoPedido)
+                            ? "Como la cocina aún no lo termina, los insumos vuelven al stock."
+                            : "El pedido ya se preparó: los insumos NO vuelven al stock.")
+                        La anulación queda registrada en la bitácora.
+                    </p>
+                    <form asp-action="Anular" asp-route-id="@Model.IdPedido" method="post" class="row g-2">
+                        <div class="col-md-9">
+                            <label for="motivo" class="visually-hidden">Motivo</label>
+                            <input id="motivo" name="motivo" class="form-control" required minlength="5" maxlength="200"
+                                   placeholder="Motivo de la anulación (obligatorio)" />
+                        </div>
+                        <div class="col-md-3 d-grid">
+                            <button type="submit" class="btn btn-danger">Anular</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        }
+        else if (esAdminSinMfa)
+        {
+            <div class="alert alert-warning mt-3 small">
+                Para anular pedidos debes ingresar con verificación en dos pasos.
+                <a href="/Identity/Account/Manage/TwoFactorAuthentication">Configurar 2FA</a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Si otra pantalla cambia ESTE pedido (cocina, reparto), se recarga para mostrar su nuevo estado.
+        document.addEventListener('alitasgo:pedido', function (e) {
+            if (e.detail.idPedido !== @Model.IdPedido) return;
+            var motivo = document.getElementById('motivo');
+            if (motivo && motivo.value.trim() !== '') return;   // no perder lo que se está escribiendo
+            location.reload();
+        });
+    </script>
+}

@@ -22,6 +22,47 @@ namespace AlitasGoWeb.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("AlitasGoWeb.Models.Auditoria", b =>
+                {
+                    b.Property<int>("IdAuditoria")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdAuditoria"));
+
+                    b.Property<string>("Accion")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Detalle")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Entidad")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IdEntidad")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Usuario")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("IdAuditoria");
+
+                    b.HasIndex("Fecha");
+
+                    b.ToTable("Auditorias", (string)null);
+                });
+
             modelBuilder.Entity("AlitasGoWeb.Models.CanalAtencion", b =>
                 {
                     b.Property<int>("IdCanalAtencion")
@@ -259,6 +300,10 @@ namespace AlitasGoWeb.Migrations
                     b.Property<decimal>("Total")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("Usuario")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
                     b.HasKey("Id");
 
                     b.ToTable("ComprasInsumos", (string)null);
@@ -283,6 +328,9 @@ namespace AlitasGoWeb.Migrations
 
                     b.Property<int>("InsumoId")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
@@ -452,6 +500,12 @@ namespace AlitasGoWeb.Migrations
                             IdEstadoPedido = 6,
                             Activo = true,
                             Nombre = "Anulado"
+                        },
+                        new
+                        {
+                            IdEstadoPedido = 7,
+                            Activo = true,
+                            Nombre = "Servido"
                         });
                 });
 
@@ -515,7 +569,68 @@ namespace AlitasGoWeb.Migrations
                             StockActual = 50m,
                             StockMinimo = 12m,
                             UnidadMedida = "unidad"
+                        },
+                        new
+                        {
+                            IdInsumo = 5,
+                            Nombre = "Salsa acevichada",
+                            StockActual = 3m,
+                            StockMinimo = 1m,
+                            UnidadMedida = "lt"
+                        },
+                        new
+                        {
+                            IdInsumo = 6,
+                            Nombre = "Papas",
+                            StockActual = 15m,
+                            StockMinimo = 4m,
+                            UnidadMedida = "kg"
                         });
+                });
+
+            modelBuilder.Entity("AlitasGoWeb.Models.MovimientoInventario", b =>
+                {
+                    b.Property<int>("IdMovimientoInventario")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdMovimientoInventario"));
+
+                    b.Property<decimal>("Cantidad")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("IdInsumo")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("IdPedido")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Motivo")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Usuario")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("IdMovimientoInventario");
+
+                    b.HasIndex("Fecha");
+
+                    b.HasIndex("IdInsumo");
+
+                    b.HasIndex("IdPedido");
+
+                    b.ToTable("MovimientosInventario", (string)null);
                 });
 
             modelBuilder.Entity("AlitasGoWeb.Models.NroMesa", b =>
@@ -619,11 +734,36 @@ namespace AlitasGoWeb.Migrations
                     b.Property<int>("IdPedido")
                         .HasColumnType("int");
 
+                    b.Property<string>("DocumentoCliente")
+                        .HasMaxLength(11)
+                        .HasColumnType("nvarchar(11)");
+
                     b.Property<DateTime>("FechaPago")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("IdTipoPago")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("Monto")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("NumeroComprobante")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("RazonSocial")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("TipoComprobante")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("UsuarioCobro")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.HasKey("IdPedido");
 
@@ -652,8 +792,16 @@ namespace AlitasGoWeb.Migrations
                     b.Property<int>("IdEstadoPedido")
                         .HasColumnType("int");
 
+                    b.Property<string>("MotivoAnulacion")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<decimal>("Total")
                         .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("UsuarioRegistro")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.HasKey("IdPedido");
 
@@ -661,7 +809,8 @@ namespace AlitasGoWeb.Migrations
 
                     b.HasIndex("IdCliente");
 
-                    b.HasIndex("IdEstadoPedido");
+                    b.HasIndex("IdEstadoPedido", "Fecha")
+                        .HasDatabaseName("IX_Pedidos_Estado_Fecha");
 
                     b.ToTable("Pedidos", (string)null);
                 });
@@ -671,11 +820,23 @@ namespace AlitasGoWeb.Migrations
                     b.Property<int>("IdPedido")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("CostoEnvio")
+                        .HasColumnType("decimal(10,2)");
+
                     b.Property<string>("Direccion")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int>("IdZonaDelivery")
                         .HasColumnType("int");
+
+                    b.Property<string>("Referencia")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Telefono")
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
 
                     b.HasKey("IdPedido");
 
@@ -918,6 +1079,26 @@ namespace AlitasGoWeb.Migrations
                     b.HasIndex("IdTipoPromocion");
 
                     b.ToTable("Promociones", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            IdPromocion = 1,
+                            Activo = true,
+                            IdCanalPromocion = 1,
+                            IdDia = 2,
+                            IdTipoPromocion = 3,
+                            Nombre = "Martes 2x1 en media docena"
+                        },
+                        new
+                        {
+                            IdPromocion = 2,
+                            Activo = true,
+                            IdCanalPromocion = 3,
+                            IdDia = 4,
+                            IdTipoPromocion = 2,
+                            Nombre = "Docena del día (jueves)"
+                        });
                 });
 
             modelBuilder.Entity("AlitasGoWeb.Models.Receta", b =>
@@ -957,6 +1138,143 @@ namespace AlitasGoWeb.Migrations
                     b.HasIndex("IdSabor");
 
                     b.ToTable("Recetas", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            IdProductoInsumo = 1,
+                            Activo = true,
+                            CantidadUsada = 0.60m,
+                            IdInsumo = 1,
+                            IdProducto = 1,
+                            UnidadMedida = "kg"
+                        },
+                        new
+                        {
+                            IdProductoInsumo = 2,
+                            Activo = true,
+                            CantidadUsada = 0.05m,
+                            IdInsumo = 2,
+                            IdProducto = 1,
+                            IdSabor = 1,
+                            UnidadMedida = "lt"
+                        },
+                        new
+                        {
+                            IdProductoInsumo = 3,
+                            Activo = true,
+                            CantidadUsada = 0.05m,
+                            IdInsumo = 3,
+                            IdProducto = 1,
+                            IdSabor = 2,
+                            UnidadMedida = "lt"
+                        },
+                        new
+                        {
+                            IdProductoInsumo = 4,
+                            Activo = true,
+                            CantidadUsada = 0.05m,
+                            IdInsumo = 5,
+                            IdProducto = 1,
+                            IdSabor = 3,
+                            UnidadMedida = "lt"
+                        },
+                        new
+                        {
+                            IdProductoInsumo = 5,
+                            Activo = true,
+                            CantidadUsada = 1.20m,
+                            IdInsumo = 1,
+                            IdProducto = 2,
+                            UnidadMedida = "kg"
+                        },
+                        new
+                        {
+                            IdProductoInsumo = 6,
+                            Activo = true,
+                            CantidadUsada = 0.10m,
+                            IdInsumo = 2,
+                            IdProducto = 2,
+                            IdSabor = 1,
+                            UnidadMedida = "lt"
+                        },
+                        new
+                        {
+                            IdProductoInsumo = 7,
+                            Activo = true,
+                            CantidadUsada = 0.10m,
+                            IdInsumo = 3,
+                            IdProducto = 2,
+                            IdSabor = 2,
+                            UnidadMedida = "lt"
+                        },
+                        new
+                        {
+                            IdProductoInsumo = 8,
+                            Activo = true,
+                            CantidadUsada = 0.10m,
+                            IdInsumo = 5,
+                            IdProducto = 2,
+                            IdSabor = 3,
+                            UnidadMedida = "lt"
+                        },
+                        new
+                        {
+                            IdProductoInsumo = 9,
+                            Activo = true,
+                            CantidadUsada = 2.40m,
+                            IdInsumo = 1,
+                            IdProducto = 3,
+                            UnidadMedida = "kg"
+                        },
+                        new
+                        {
+                            IdProductoInsumo = 10,
+                            Activo = true,
+                            CantidadUsada = 0.20m,
+                            IdInsumo = 2,
+                            IdProducto = 3,
+                            IdSabor = 1,
+                            UnidadMedida = "lt"
+                        },
+                        new
+                        {
+                            IdProductoInsumo = 11,
+                            Activo = true,
+                            CantidadUsada = 0.20m,
+                            IdInsumo = 3,
+                            IdProducto = 3,
+                            IdSabor = 2,
+                            UnidadMedida = "lt"
+                        },
+                        new
+                        {
+                            IdProductoInsumo = 12,
+                            Activo = true,
+                            CantidadUsada = 0.20m,
+                            IdInsumo = 5,
+                            IdProducto = 3,
+                            IdSabor = 3,
+                            UnidadMedida = "lt"
+                        },
+                        new
+                        {
+                            IdProductoInsumo = 13,
+                            Activo = true,
+                            CantidadUsada = 0.25m,
+                            IdInsumo = 6,
+                            IdProducto = 6,
+                            UnidadMedida = "kg"
+                        },
+                        new
+                        {
+                            IdProductoInsumo = 14,
+                            Activo = true,
+                            CantidadUsada = 1m,
+                            IdInsumo = 4,
+                            IdProducto = 9,
+                            UnidadMedida = "unidad"
+                        });
                 });
 
             modelBuilder.Entity("AlitasGoWeb.Models.Sabor", b =>
@@ -1244,6 +1562,208 @@ namespace AlitasGoWeb.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex")
+                        .HasFilter("[NormalizedName] IS NOT NULL");
+
+                    b.ToTable("AspNetRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetRoleClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("ProviderKey")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserLogins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RoleId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetUserRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("LoginProvider")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("AspNetUserTokens", (string)null);
+                });
+
             modelBuilder.Entity("ProductoPromocion", b =>
                 {
                     b.Property<int>("ProductosIdProducto")
@@ -1257,6 +1777,18 @@ namespace AlitasGoWeb.Migrations
                     b.HasIndex("PromocionesIdPromocion");
 
                     b.ToTable("PromocionProducto", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            ProductosIdProducto = 1,
+                            PromocionesIdPromocion = 1
+                        },
+                        new
+                        {
+                            ProductosIdProducto = 2,
+                            PromocionesIdPromocion = 2
+                        });
                 });
 
             modelBuilder.Entity("AlitasGoWeb.Models.ComboProducto", b =>
@@ -1328,6 +1860,24 @@ namespace AlitasGoWeb.Migrations
                     b.Navigation("Producto");
 
                     b.Navigation("Sabor");
+                });
+
+            modelBuilder.Entity("AlitasGoWeb.Models.MovimientoInventario", b =>
+                {
+                    b.HasOne("AlitasGoWeb.Models.Insumo", "Insumo")
+                        .WithMany("Movimientos")
+                        .HasForeignKey("IdInsumo")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlitasGoWeb.Models.Pedido", "Pedido")
+                        .WithMany()
+                        .HasForeignKey("IdPedido")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Insumo");
+
+                    b.Navigation("Pedido");
                 });
 
             modelBuilder.Entity("AlitasGoWeb.Models.NroMesa", b =>
@@ -1497,6 +2047,57 @@ namespace AlitasGoWeb.Migrations
                     b.Navigation("Sabor");
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ProductoPromocion", b =>
                 {
                     b.HasOne("AlitasGoWeb.Models.Producto", null)
@@ -1550,6 +2151,8 @@ namespace AlitasGoWeb.Migrations
             modelBuilder.Entity("AlitasGoWeb.Models.Insumo", b =>
                 {
                     b.Navigation("DetallesCompra");
+
+                    b.Navigation("Movimientos");
 
                     b.Navigation("ProductoInsumos");
                 });

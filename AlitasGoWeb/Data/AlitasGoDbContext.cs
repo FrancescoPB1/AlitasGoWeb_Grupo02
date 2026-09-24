@@ -1,9 +1,11 @@
-﻿using AlitasGoWeb.Models;
+using AlitasGoWeb.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace AlitasGoWeb.Data
 {
-    public class AlitasGoDbContext : DbContext
+    public class AlitasGoDbContext : IdentityDbContext<IdentityUser>
     {
         public AlitasGoDbContext(DbContextOptions<AlitasGoDbContext> options) : base(options)
         {
@@ -37,6 +39,10 @@ namespace AlitasGoWeb.Data
         public DbSet<Insumo> Insumos => Set<Insumo>();
         public DbSet<CompraInsumos> ComprasInsumos => Set<CompraInsumos>();
         public DbSet<DetalleCompraInsumo> DetallesCompraInsumo => Set<DetalleCompraInsumo>();
+        public DbSet<MovimientoInventario> MovimientosInventario => Set<MovimientoInventario>();
+
+        // Seguridad
+        public DbSet<Auditoria> Auditorias => Set<Auditoria>();
 
         // Pedidos
         public DbSet<Pedido> Pedidos => Set<Pedido>();
@@ -97,7 +103,38 @@ namespace AlitasGoWeb.Data
             mb.Entity<Promocion>()
               .HasMany(p => p.Productos)
               .WithMany(pr => pr.Promociones)
-              .UsingEntity(j => j.ToTable("PromocionProducto"));
+              .UsingEntity(j =>
+              {
+                  j.ToTable("PromocionProducto");
+                  // Promociones de ejemplo: 2x1 martes en media docena (salón) y docena del jueves (todos)
+                  j.HasData(
+                      new { PromocionesIdPromocion = 1, ProductosIdProducto = 1 },
+                      new { PromocionesIdPromocion = 2, ProductosIdProducto = 2 });
+              });
+
+            // ---------- Rendimiento en hora punta ----------
+            // El tablero de cocina y el listado filtran por estado y fecha en cada refresco.
+            mb.Entity<Pedido>()
+              .HasIndex(p => new { p.IdEstadoPedido, p.Fecha })
+              .HasDatabaseName("IX_Pedidos_Estado_Fecha");
+
+            // ---------- Inventario ----------
+            mb.Entity<MovimientoInventario>(e =>
+            {
+                e.HasOne(m => m.Insumo)
+                 .WithMany(i => i.Movimientos)
+                 .HasForeignKey(m => m.IdInsumo)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(m => m.Pedido)
+                 .WithMany()
+                 .HasForeignKey(m => m.IdPedido)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasIndex(m => m.Fecha);
+            });
+
+            mb.Entity<Auditoria>().HasIndex(a => a.Fecha);
 
             // ---------- Receta ----------
             mb.Entity<Receta>(e =>
@@ -176,6 +213,8 @@ namespace AlitasGoWeb.Data
             mb.Entity<PedidoLocal>().ToTable("PedidosLocal");
             mb.Entity<PedidoDelivery>().ToTable("PedidosDelivery");
             mb.Entity<Pago>().ToTable("Pagos");
+            mb.Entity<MovimientoInventario>().ToTable("MovimientosInventario");
+            mb.Entity<Auditoria>().ToTable("Auditorias");
 
             // ============================================
             // SEED
@@ -227,7 +266,8 @@ namespace AlitasGoWeb.Data
                 new EstadoPedido { IdEstadoPedido = 3, Nombre = "Listo", Activo = true },
                 new EstadoPedido { IdEstadoPedido = 4, Nombre = "EnReparto", Activo = true },
                 new EstadoPedido { IdEstadoPedido = 5, Nombre = "Entregado", Activo = true },
-                new EstadoPedido { IdEstadoPedido = 6, Nombre = "Anulado", Activo = true }
+                new EstadoPedido { IdEstadoPedido = 6, Nombre = "Anulado", Activo = true },
+                new EstadoPedido { IdEstadoPedido = 7, Nombre = "Servido", Activo = true }
             );
 
             // TipoPago
@@ -324,7 +364,38 @@ namespace AlitasGoWeb.Data
                 new Insumo { IdInsumo = 1, Nombre = "Alitas crudas", UnidadMedida = "kg", StockActual = 20, StockMinimo = 5 },
                 new Insumo { IdInsumo = 2, Nombre = "Salsa buffalo", UnidadMedida = "lt", StockActual = 5, StockMinimo = 2 },
                 new Insumo { IdInsumo = 3, Nombre = "Salsa BBQ", UnidadMedida = "lt", StockActual = 4, StockMinimo = 2 },
-                new Insumo { IdInsumo = 4, Nombre = "Gaseosa personal", UnidadMedida = "unidad", StockActual = 50, StockMinimo = 12 }
+                new Insumo { IdInsumo = 4, Nombre = "Gaseosa personal", UnidadMedida = "unidad", StockActual = 50, StockMinimo = 12 },
+                new Insumo { IdInsumo = 5, Nombre = "Salsa acevichada", UnidadMedida = "lt", StockActual = 3, StockMinimo = 1 },
+                new Insumo { IdInsumo = 6, Nombre = "Papas", UnidadMedida = "kg", StockActual = 15, StockMinimo = 4 }
+            );
+
+            // Recetas de ejemplo (cantidades referenciales; Rosa las ajusta desde Productos → Receta).
+            // IdSabor = null: la línea se consume con cualquier sabor.
+            mb.Entity<Receta>().HasData(
+                // Media docena alitas
+                new Receta { IdProductoInsumo = 1, IdProducto = 1, IdInsumo = 1, IdSabor = null, CantidadUsada = 0.60m, UnidadMedida = "kg", Activo = true },
+                new Receta { IdProductoInsumo = 2, IdProducto = 1, IdInsumo = 2, IdSabor = 1, CantidadUsada = 0.05m, UnidadMedida = "lt", Activo = true },
+                new Receta { IdProductoInsumo = 3, IdProducto = 1, IdInsumo = 3, IdSabor = 2, CantidadUsada = 0.05m, UnidadMedida = "lt", Activo = true },
+                new Receta { IdProductoInsumo = 4, IdProducto = 1, IdInsumo = 5, IdSabor = 3, CantidadUsada = 0.05m, UnidadMedida = "lt", Activo = true },
+                // Docena alitas
+                new Receta { IdProductoInsumo = 5, IdProducto = 2, IdInsumo = 1, IdSabor = null, CantidadUsada = 1.20m, UnidadMedida = "kg", Activo = true },
+                new Receta { IdProductoInsumo = 6, IdProducto = 2, IdInsumo = 2, IdSabor = 1, CantidadUsada = 0.10m, UnidadMedida = "lt", Activo = true },
+                new Receta { IdProductoInsumo = 7, IdProducto = 2, IdInsumo = 3, IdSabor = 2, CantidadUsada = 0.10m, UnidadMedida = "lt", Activo = true },
+                new Receta { IdProductoInsumo = 8, IdProducto = 2, IdInsumo = 5, IdSabor = 3, CantidadUsada = 0.10m, UnidadMedida = "lt", Activo = true },
+                // 2 docenas alitas
+                new Receta { IdProductoInsumo = 9, IdProducto = 3, IdInsumo = 1, IdSabor = null, CantidadUsada = 2.40m, UnidadMedida = "kg", Activo = true },
+                new Receta { IdProductoInsumo = 10, IdProducto = 3, IdInsumo = 2, IdSabor = 1, CantidadUsada = 0.20m, UnidadMedida = "lt", Activo = true },
+                new Receta { IdProductoInsumo = 11, IdProducto = 3, IdInsumo = 3, IdSabor = 2, CantidadUsada = 0.20m, UnidadMedida = "lt", Activo = true },
+                new Receta { IdProductoInsumo = 12, IdProducto = 3, IdInsumo = 5, IdSabor = 3, CantidadUsada = 0.20m, UnidadMedida = "lt", Activo = true },
+                // Papas fritas y gaseosa personal
+                new Receta { IdProductoInsumo = 13, IdProducto = 6, IdInsumo = 6, IdSabor = null, CantidadUsada = 0.25m, UnidadMedida = "kg", Activo = true },
+                new Receta { IdProductoInsumo = 14, IdProducto = 9, IdInsumo = 4, IdSabor = null, CantidadUsada = 1m, UnidadMedida = "unidad", Activo = true }
+            );
+
+            // Promociones de ejemplo (IdDia: 1 = Lunes ... 7 = Domingo)
+            mb.Entity<Promocion>().HasData(
+                new Promocion { IdPromocion = 1, Nombre = "Martes 2x1 en media docena", IdTipoPromocion = 3, IdCanalPromocion = 1, IdDia = 2, Activo = true },
+                new Promocion { IdPromocion = 2, Nombre = "Docena del día (jueves)", IdTipoPromocion = 2, IdCanalPromocion = 3, IdDia = 4, Activo = true }
             );
         }
     }

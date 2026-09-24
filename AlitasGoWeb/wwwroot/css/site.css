@@ -104,3 +104,49 @@ body {
         font-size: 1.25rem;
     }
 }
+
+/* ---------- Estados del pedido ---------- */
+.badge-estado { font-size: .8rem; }
+.estado-1 { background-color: #FFD60A; color: #1A1A1A; }   /* Recibido */
+.estado-2 { background-color: #0DCAF0; color: #1A1A1A; }   /* En preparación */
+.estado-3 { background-color: #198754; color: #fff; }      /* Listo */
+.estado-4 { background-color: #6F42C1; color: #fff; }      /* En reparto */
+.estado-5 { background-color: #495057; color: #fff; }      /* Entregado */
+.estado-6 { background-color: #DC3545; color: #fff; }      /* Anulado */
+.estado-7 { background-color: #FD7E14; color: #1A1A1A; }   /* Servido */
+
+/* ---------- Salón ---------- */
+.mesa { border-top: 6px solid #198754; }
+.mesa.ocupada { border-top-color: var(--ag-primary); }
+
+/* ---------- Cocina: alto contraste y letra grande (pensado para don Ítalo) ---------- */
+body.modo-cocina { background: #000; color: #fff; }
+body.modo-cocina main a:not(.btn) { color: #FFD60A; }
+.cocina-titulo { font-size: 2rem; font-weight: 700; }
+.ticket-cocina {
+    background: #111;
+    color: #fff;
+    border: 6px solid #FFD60A;
+    border-radius: .75rem;
+    padding: 1rem 1.25rem;
+    height: 100%;
+}
+.ticket-cocina.estado-2 { border-color: #0DCAF0; background: #111; color: #fff; }
+.ticket-cocina.estado-1 { background: #111; color: #fff; }
+.ticket-cocina .ticket-cabecera { font-size: 2rem; font-weight: 800; line-height: 1.1; }
+.ticket-cocina .ticket-sub { font-size: 1.35rem; color: #FFD60A; }
+.ticket-cocina .ticket-estado { font-size: 1.25rem; font-weight: 700; text-transform: uppercase; }
+.ticket-cocina ul { list-style: none; padding-left: 0; margin: 1rem 0; }
+.ticket-cocina li { font-size: 1.6rem; font-weight: 600; padding: .35rem 0; border-bottom: 2px solid #333; }
+.ticket-cocina li small { display: block; font-size: 1.15rem; color: #ddd; font-weight: 400; }
+.ticket-cocina .btn-cocina { font-size: 1.6rem; font-weight: 800; padding: .9rem; width: 100%; border-width: 3px; }
+.ticket-cocina .btn-cocina:focus-visible,
+body.modo-cocina .btn:focus-visible { outline: 5px solid #fff; outline-offset: 3px; }
+.aviso-cocina { font-size: 1.5rem; font-weight: 700; background: #FFD60A; color: #000; border-radius: .5rem; padding: .5rem 1rem; }
+
+/* ---------- Impresión del comprobante ---------- */
+@media print {
+    .no-imprimir, .alert, footer, header { display: none !important; }
+    body { background: #fff; }
+    .card { box-shadow: none; }
+}

@@ -1,0 +1,43 @@
+@model List<Promocion>
+@{
+    ViewData["Title"] = "Promociones";
+}
+
+<div class="page-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+    <div>
+        <h1 class="h3"><i class="bi bi-percent" aria-hidden="true"></i> Promociones</h1>
+        <p class="text-muted mb-0">Se aplican solas al registrar el pedido según el día, el canal y el producto.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i> Nueva promoción</a>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead><tr><th>Nombre</th><th>Tipo</th><th>Día</th><th>Canal</th><th>Productos</th><th>Estado</th><th class="text-end">Acción</th></tr></thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    <tr class="@(p.Activo ? "" : "text-muted")">
+                        <td class="fw-semibold">@p.Nombre</td>
+                        <td>@p.TipoPromocion?.Nombre <span class="badge bg-light text-dark border">@p.TipoPromocion?.Codigo</span></td>
+                        <td>@p.Dia?.Nombre</td>
+                        <td>@p.CanalPromocion?.Nombre</td>
+                        <td class="small">@string.Join(", ", p.Productos.Select(x => x.Nombre))</td>
+                        <td>
+                            @if (p.Activo) { <span class="badge bg-success">Activa</span> }
+                            else { <span class="badge bg-secondary">Inactiva</span> }
+                        </td>
+                        <td class="text-end">
+                            <form asp-action="Alternar" asp-route-id="@p.IdPromocion" method="post">
+                                <button type="submit" class="btn btn-sm @(p.Activo ? "btn-outline-danger" : "btn-outline-success")">
+                                    @(p.Activo ? "Desactivar" : "Activar")
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

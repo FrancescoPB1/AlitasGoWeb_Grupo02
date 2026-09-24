@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AlitasGoWeb.Models
 {
@@ -16,6 +16,6 @@ namespace AlitasGoWeb.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal CostoUnitario { get; set; }
         [Column(TypeName = "decimal(18,2)")]
-        public decimal Subtotal ;
+        public decimal Subtotal { get; set; }   // antes era un campo y EF no lo mapeaba
     }
 }

@@ -1,0 +1,88 @@
+@model ComprobanteVM
+@{
+    var p = Model.Pedido;
+    var pago = p.Pago!;
+    ViewData["Title"] = $"{pago.TipoComprobante} {pago.NumeroComprobante}";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3 no-imprimir">
+    <a asp-action="Details" asp-route-id="@p.IdPedido" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver al pedido
+    </a>
+    <button type="button" class="btn btn-primary" onclick="window.print()">
+        <i class="bi bi-printer" aria-hidden="true"></i> Imprimir
+    </button>
+</div>
+
+<div class="card mx-auto" style="max-width: 42rem;">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+            <div>
+                <div class="fs-4 fw-bold">@Model.Negocio.NombreNegocio</div>
+                <div class="small">RUC @Model.Negocio.Ruc</div>
+                <div class="small text-muted">@Model.Negocio.Direccion</div>
+            </div>
+            <div class="text-end border rounded p-2">
+                <div class="fw-bold text-uppercase">@(pago.TipoComprobante == TiposComprobante.Factura ? "Factura" : "Boleta de venta")</div>
+                <div class="fs-5">@pago.NumeroComprobante</div>
+            </div>
+        </div>
+
+        <dl class="row small mb-3">
+            <dt class="col-4 fw-normal text-muted">Fecha</dt>
+            <dd class="col-8">@pago.FechaPago.ToString("dd/MM/yyyy HH:mm")</dd>
+            @if (pago.TipoComprobante == TiposComprobante.Factura)
+            {
+                <dt class="col-4 fw-normal text-muted">Razón social</dt>
+                <dd class="col-8">@pago.RazonSocial</dd>
+                <dt class="col-4 fw-normal text-muted">RUC</dt>
+                <dd class="col-8">@pago.DocumentoCliente</dd>
+            }
+            else
+            {
+                <dt class="col-4 fw-normal text-muted">Cliente</dt>
+                <dd class="col-8">@p.Cliente?.Nombre @p.Cliente?.ApellidoPaterno @(string.IsNullOrEmpty(pago.DocumentoCliente) ? "" : "· DNI " + pago.DocumentoCliente)</dd>
+            }
+            <dt class="col-4 fw-normal text-muted">Pedido</dt>
+            <dd class="col-8">#@p.IdPedido · @(p.EsDelivery ? "Delivery" : "Salón")</dd>
+            <dt class="col-4 fw-normal text-muted">Medio de pago</dt>
+            <dd class="col-8">@pago.TipoPago?.Nombre</dd>
+        </dl>
+
+        <table class="table table-sm">
+            <thead>
+                <tr><th>Cant.</th><th>Descripción</th><th class="text-end">Importe</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var d in p.DetallePedidos)
+                {
+                    <tr>
+                        <td>@d.Cantidad</td>
+                        <td>
+                            @d.Producto?.Nombre @(d.Sabor != null ? "(" + d.Sabor.Nombre + ")" : "")
+                            @if (d.Descuento > 0)
+                            {
+                                <div class="small text-success">Promoción: - S/ @d.Descuento.ToString("0.00")</div>
+                            }
+                        </td>
+                        <td class="text-end">S/ @d.SubTotal.ToString("0.00")</td>
+                    </tr>
+                }
+                @if (p.PedidoDelivery != null && p.PedidoDelivery.CostoEnvio > 0)
+                {
+                    <tr><td></td><td>Envío</td><td class="text-end">S/ @p.PedidoDelivery.CostoEnvio.ToString("0.00")</td></tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="ms-auto" style="max-width: 18rem;">
+            <div class="d-flex justify-content-between small"><span>Op. gravada</span><span>S/ @Model.Desglose.BaseImponible.ToString("0.00")</span></div>
+            <div class="d-flex justify-content-between small"><span>IGV (@((Model.Negocio.Igv * 100).ToString("0"))%)</span><span>S/ @Model.Desglose.Igv.ToString("0.00")</span></div>
+            <div class="d-flex justify-content-between fw-bold fs-5 border-top mt-1 pt-1"><span>Total</span><span>S/ @Model.Desglose.Total.ToString("0.00")</span></div>
+        </div>
+
+        <p class="small text-muted mt-4 mb-0">
+            Comprobante interno del sistema. La emisión electrónica ante SUNAT está fuera del alcance de esta versión.
+        </p>
+    </div>
+</div>

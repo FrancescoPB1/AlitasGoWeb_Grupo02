@@ -1,0 +1,61 @@
+@model PromocionFormVM
+@{
+    ViewData["Title"] = "Nueva promoción";
+}
+
+<div class="page-header mb-4">
+    <h1 class="h3"><i class="bi bi-percent" aria-hidden="true"></i> Nueva promoción</h1>
+    <p class="text-muted mb-0">DOCENA: 15% de descuento. 2X1: por cada dos unidades se cobra una. Los combos no acumulan promociones.</p>
+</div>
+
+<div class="card" style="max-width: 48rem;">
+    <div class="card-body">
+        <form asp-action="Create" method="post" data-una-vez>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+            <div class="mb-3">
+                <label asp-for="Nombre" class="form-label"></label>
+                <input asp-for="Nombre" class="form-control" placeholder="Ej.: Viernes 2x1 en docena" autofocus />
+                <span asp-validation-for="Nombre" class="text-danger small"></span>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-sm-4">
+                    <label asp-for="IdTipoPromocion" class="form-label"></label>
+                    <select asp-for="IdTipoPromocion" asp-items="Model.Tipos" class="form-select"><option value="0">-- Selecciona --</option></select>
+                    <span asp-validation-for="IdTipoPromocion" class="text-danger small"></span>
+                </div>
+                <div class="col-sm-4">
+                    <label asp-for="IdDia" class="form-label"></label>
+                    <select asp-for="IdDia" asp-items="Model.Dias" class="form-select"><option value="0">-- Selecciona --</option></select>
+                    <span asp-validation-for="IdDia" class="text-danger small"></span>
+                </div>
+                <div class="col-sm-4">
+                    <label asp-for="IdCanalPromocion" class="form-label"></label>
+                    <select asp-for="IdCanalPromocion" asp-items="Model.CanalesPromo" class="form-select"><option value="0">-- Selecciona --</option></select>
+                    <span asp-validation-for="IdCanalPromocion" class="text-danger small"></span>
+                </div>
+            </div>
+            <fieldset class="mb-3">
+                <legend class="form-label fs-6">Productos a los que aplica</legend>
+                <div class="row">
+                    @foreach (var p in Model.Productos)
+                    {
+                        <div class="col-sm-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="IdsProducto" value="@p.Value" id="prod-@p.Value" @(p.Selected ? "checked" : "") />
+                                <label class="form-check-label" for="prod-@p.Value">@p.Text</label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </fieldset>
+            <div class="d-flex justify-content-between">
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

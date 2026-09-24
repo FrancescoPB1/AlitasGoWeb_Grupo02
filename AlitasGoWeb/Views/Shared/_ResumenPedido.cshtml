@@ -1,0 +1,32 @@
+@model Pedido
+<dl class="row mb-0 small">
+    <dt class="col-5 text-muted fw-normal">Cliente</dt>
+    <dd class="col-7">@Model.Cliente?.Nombre @Model.Cliente?.ApellidoPaterno</dd>
+    <dt class="col-5 text-muted fw-normal">Canal</dt>
+    <dd class="col-7">
+        @if (Model.PedidoLocal != null)
+        {
+            <span>Salón · Mesa @Model.PedidoLocal.NroMesa?.NumeroMesa</span>
+        }
+        else if (Model.PedidoDelivery != null)
+        {
+            <span>Delivery · @Model.PedidoDelivery.ZonaDelivery?.NombreZona</span>
+        }
+    </dd>
+    @if (Model.PedidoDelivery != null)
+    {
+        <dt class="col-5 text-muted fw-normal">Dirección</dt>
+        <dd class="col-7">@Model.PedidoDelivery.Direccion</dd>
+        @if (!string.IsNullOrEmpty(Model.PedidoDelivery.Referencia))
+        {
+            <dt class="col-5 text-muted fw-normal">Referencia</dt>
+            <dd class="col-7">@Model.PedidoDelivery.Referencia</dd>
+        }
+        <dt class="col-5 text-muted fw-normal">Teléfono</dt>
+        <dd class="col-7"><a href="tel:@Model.PedidoDelivery.Telefono">@Model.PedidoDelivery.Telefono</a></dd>
+    }
+    <dt class="col-5 text-muted fw-normal">Hora</dt>
+    <dd class="col-7">@Model.Fecha.ToString("dd/MM/yyyy HH:mm")</dd>
+    <dt class="col-5 text-muted fw-normal">Estado</dt>
+    <dd class="col-7"><partial name="_EstadoBadge" model="Model.IdEstadoPedido" /></dd>
+</dl>

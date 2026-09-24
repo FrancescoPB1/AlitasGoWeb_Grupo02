@@ -1,0 +1,56 @@
+@model List<UsuarioResumen>
+@{
+    ViewData["Title"] = "Usuarios y roles";
+}
+
+<div class="page-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+    <div>
+        <h1 class="h3"><i class="bi bi-person-badge" aria-hidden="true"></i> Usuarios y roles</h1>
+        <p class="text-muted mb-0">Cada persona con su propio acceso y solo lo que su rol permite.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-person-plus" aria-hidden="true"></i> Nuevo usuario</a>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Usuario</th><th>Rol</th><th>2FA</th><th>Estado</th><th style="width:22rem">Cambiar rol</th></tr></thead>
+            <tbody>
+                @foreach (var u in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">@u.Email</td>
+                        <td>@u.Rol</td>
+                        <td>
+                            @if (u.DosFactores) { <span class="badge bg-success">Activo</span> }
+                            else { <span class="badge bg-secondary">No</span> }
+                        </td>
+                        <td>
+                            @if (u.Bloqueado) { <span class="badge bg-danger">Bloqueado</span> }
+                            else { <span class="badge bg-success">Habilitado</span> }
+                        </td>
+                        <td>
+                            @if (!string.Equals(u.Email, User.Identity?.Name, StringComparison.OrdinalIgnoreCase))
+                            {
+                                <form asp-action="CambiarRol" asp-route-id="@u.Id" method="post" class="d-flex gap-2">
+                                    <label for="rol-@u.Id" class="visually-hidden">Rol de @u.Email</label>
+                                    <select id="rol-@u.Id" name="rol" class="form-select form-select-sm">
+                                        @foreach (var rol in RolesSistema.Todos)
+                                        {
+                                            <option value="@rol" selected="@(rol == u.Rol)">@rol</option>
+                                        }
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">Aplicar</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="small text-muted">(tu cuenta)</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

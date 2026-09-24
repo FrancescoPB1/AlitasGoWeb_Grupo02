@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -12,6 +13,8 @@ namespace AlitasGoWeb.Models
         [Display(Name = "Nombre")]
         [Required(ErrorMessage = "El nombre es obligatorio.")]
         [StringLength(100, ErrorMessage = "Máximo {1} caracteres.")]
+        [Remote(action: "NombreDisponible", controller: "CategoriaProducto",
+                AdditionalFields = nameof(IdCategoriaProducto), ErrorMessage = "Esa categoría ya existe.")]
         public string Nombre { get; set; } = string.Empty;
 
         [Display(Name = "Activo")]

@@ -1,7 +1,17 @@
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService Autorizacion
 @{
     var controladorActual = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
-    string Activo(string controlador) =>
-        string.Equals(controladorActual, controlador, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+    string Activo(params string[] controladores) =>
+        controladores.Any(c => string.Equals(controladorActual, c, StringComparison.OrdinalIgnoreCase)) ? "active" : "";
+
+    var autenticado = User.Identity?.IsAuthenticated == true;
+    var esAdmin = User.IsInRole(RolesSistema.Administrador);
+    var esCajero = User.IsInRole(RolesSistema.Cajero);
+    var esCocinero = User.IsInRole(RolesSistema.Cocinero);
+    var esRepartidor = User.IsInRole(RolesSistema.Repartidor);
+    // ¿Ingresó con segundo factor? (lo exige la política AnularPedido)
+    var adminConMfa = autenticado && (await Autorizacion.AuthorizeAsync(User, Politicas.AnularPedido)).Succeeded;
 }
 <!DOCTYPE html>
 <html lang="es">
@@ -14,49 +24,127 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100 @ViewData["BodyClass"]" data-tiempo-real="@(autenticado ? "si" : "no")" data-toast="@(ViewData["SinToast"] as string == "si" ? "no" : "si")">
+    <a class="visually-hidden-focusable btn btn-light m-2" href="#contenido">Saltar al contenido</a>
 
-    <header>
-        <nav class="navbar navbar-expand-md navbar-dark bg-dark shadow-sm">
-            <div class="container">
-                <a class="navbar-brand fw-bold d-flex align-items-center gap-2" asp-controller="Producto" asp-action="Index">
+    <header class="no-imprimir">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm" aria-label="Menú principal">
+            <div class="container-fluid px-lg-4">
+                <a class="navbar-brand fw-bold d-flex align-items-center gap-2" asp-controller="Inicio" asp-action="Index">
                     <i class="bi bi-fire" aria-hidden="true"></i> AlitasGo
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navPrincipal"
-                        aria-controls="navPrincipal" aria-expanded="false" aria-label="Abrir menú">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navPrincipal">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link @Activo("CategoriaProducto")" asp-controller="CategoriaProducto" asp-action="Index">
-                                <i class="bi bi-tags" aria-hidden="true"></i> Categorías
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @Activo("Producto")" asp-controller="Producto" asp-action="Index">
-                                <i class="bi bi-box-seam" aria-hidden="true"></i> Productos
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @Activo("PresentacionProducto")" asp-controller="PresentacionProducto" asp-action="Index">
-                                <i class="bi bi-box2" aria-hidden="true"></i> Presentaciones
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                @if (autenticado)
+                {
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navPrincipal"
+                            aria-controls="navPrincipal" aria-expanded="false" aria-label="Abrir menú">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navPrincipal">
+                        <ul class="navbar-nav me-auto">
+                            @if (esAdmin || esCajero)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link @Activo("Salon")" asp-controller="Salon" asp-action="Index">
+                                        <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> Salón
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @Activo("Pedidos")" asp-controller="Pedidos" asp-action="Index">
+                                        <i class="bi bi-receipt" aria-hidden="true"></i> Pedidos
+                                    </a>
+                                </li>
+                            }
+                            @if (esAdmin || esCocinero)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link @Activo("Cocina")" asp-controller="Cocina" asp-action="Index">
+                                        <i class="bi bi-egg-fried" aria-hidden="true"></i> Cocina
+                                    </a>
+                                </li>
+                            }
+                            @if (esAdmin || esRepartidor)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link @Activo("Reparto")" asp-controller="Reparto" asp-action="Index">
+                                        <i class="bi bi-bicycle" aria-hidden="true"></i> Reparto
+                                    </a>
+                                </li>
+                            }
+                            @if (esAdmin || esCajero)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link @Activo("Clientes")" asp-controller="Clientes" asp-action="Index">
+                                        <i class="bi bi-people" aria-hidden="true"></i> Clientes
+                                    </a>
+                                </li>
+                            }
+                            @if (esAdmin)
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle @Activo("Producto", "CategoriaProducto", "Promociones", "Insumos", "Reportes", "Usuarios", "Auditoria")"
+                                       href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-gear" aria-hidden="true"></i> Administración
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Reportes" asp-action="Index"><i class="bi bi-graph-up" aria-hidden="true"></i> Reportes</a></li>
+                                        <li><hr class="dropdown-divider" /></li>
+                                        <li><a class="dropdown-item" asp-controller="Producto" asp-action="Index"><i class="bi bi-box-seam" aria-hidden="true"></i> Productos y precios</a></li>
+                                        <li><a class="dropdown-item" asp-controller="CategoriaProducto" asp-action="Index"><i class="bi bi-tags" aria-hidden="true"></i> Categorías</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Promociones" asp-action="Index"><i class="bi bi-percent" aria-hidden="true"></i> Promociones</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Insumos" asp-action="Index"><i class="bi bi-basket" aria-hidden="true"></i> Insumos y stock</a></li>
+                                        <li><hr class="dropdown-divider" /></li>
+                                        <li><a class="dropdown-item" asp-controller="Usuarios" asp-action="Index"><i class="bi bi-person-badge" aria-hidden="true"></i> Usuarios y roles</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Auditoria" asp-action="Index"><i class="bi bi-journal-text" aria-hidden="true"></i> Bitácora</a></li>
+                                    </ul>
+                                </li>
+                            }
+                        </ul>
+                        <ul class="navbar-nav">
+                            <li class="nav-item d-flex align-items-center me-lg-2">
+                                <span id="indicadorTiempoReal" class="badge bg-secondary" title="Actualización en tiempo real">● Conectando…</span>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-circle" aria-hidden="true"></i> @User.Identity?.Name
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="/Identity/Account/Manage/TwoFactorAuthentication"><i class="bi bi-shield-lock" aria-hidden="true"></i> Seguridad (2FA)</a></li>
+                                    <li><a class="dropdown-item" href="/Identity/Account/Manage/ChangePassword"><i class="bi bi-key" aria-hidden="true"></i> Cambiar contraseña</a></li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li>
+                                        <form method="post" action="/Identity/Account/Logout?returnUrl=%2F">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Cerrar sesión</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                }
             </div>
         </nav>
     </header>
 
-    <main class="flex-grow-1 py-4">
-        <div class="container">
+    <main id="contenido" class="flex-grow-1 py-4">
+        <div class="container-fluid px-lg-4">
             <partial name="_AlertasPartial" />
+            @if (esAdmin && !adminConMfa)
+            {
+                <div class="alert alert-warning py-2 small d-flex align-items-center gap-2 no-imprimir" role="note">
+                    <i class="bi bi-shield-exclamation" aria-hidden="true"></i>
+                    <div>
+                        Ingresaste sin verificación en dos pasos. Para <strong>anular pedidos</strong> necesitas 2FA:
+                        configúralo en <a href="/Identity/Account/Manage/TwoFactorAuthentication">Seguridad (2FA)</a>
+                        y vuelve a iniciar sesión con el código.
+                    </div>
+                </div>
+            }
             @RenderBody()
         </div>
     </main>
 
-    <footer class="bg-dark text-white-50 py-3 mt-auto">
+    <footer class="bg-dark text-white-50 py-3 mt-auto no-imprimir">
         <div class="container text-center small">
             &copy; @DateTime.Now.Year AlitasGo · Grupo 02
         </div>
@@ -64,9 +152,15 @@
 
     <partial name="_ConfirmarEliminarModal" />
 
-   
+    <!-- Avisos en tiempo real (pedido listo, anulado, entregado...) -->
+    <div id="avisosTiempoReal" class="toast-container position-fixed bottom-0 end-0 p-3 no-imprimir" aria-live="polite"></div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @if (autenticado)
+    {
+        <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+    }
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
