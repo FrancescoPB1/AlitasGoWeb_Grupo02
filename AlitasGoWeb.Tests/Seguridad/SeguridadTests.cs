@@ -87,6 +87,7 @@ namespace AlitasGoWeb.Tests.Seguridad
         [InlineData(typeof(InsumosController), Politicas.SoloAdmin)]
         [InlineData(typeof(UsuariosController), Politicas.SoloAdmin)]
         [InlineData(typeof(AuditoriaController), Politicas.SoloAdmin)]
+        [InlineData(typeof(PagosController), Politicas.SoloAdmin)]
         [InlineData(typeof(PedidosController), Politicas.TomarPedidos)]
         [InlineData(typeof(SalonController), Politicas.TomarPedidos)]
         [InlineData(typeof(ClientesController), Politicas.TomarPedidos)]

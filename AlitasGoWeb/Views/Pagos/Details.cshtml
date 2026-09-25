@@ -1,0 +1,78 @@
+@model Pago
+@{
+    var p = Model.Pedido!;
+    ViewData["Title"] = $"Pago {Model.NumeroComprobante}";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver al historial
+    </a>
+    <a asp-controller="Pedidos" asp-action="Comprobante" asp-route-id="@Model.IdPedido" class="btn btn-primary">
+        <i class="bi bi-receipt" aria-hidden="true"></i> Ver comprobante
+    </a>
+</div>
+
+<h1 class="h3 mb-3">
+    <i class="bi bi-cash-coin" aria-hidden="true"></i>
+    @Model.TipoComprobante @Model.NumeroComprobante
+</h1>
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header fw-semibold">Datos del pago</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-5 fw-normal text-muted">Fecha</dt>
+                    <dd class="col-7">@Model.FechaPago.ToString("dd/MM/yyyy HH:mm")</dd>
+                    <dt class="col-5 fw-normal text-muted">Medio de pago</dt>
+                    <dd class="col-7">@Model.TipoPago?.Nombre</dd>
+                    <dt class="col-5 fw-normal text-muted">Monto</dt>
+                    <dd class="col-7 fw-bold">S/ @Model.Monto.ToString("0.00")</dd>
+                    <dt class="col-5 fw-normal text-muted">Cobrado por</dt>
+                    <dd class="col-7">@Model.UsuarioCobro</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header fw-semibold">Cliente y pedido</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    @if (Model.TipoComprobante == TiposComprobante.Factura)
+                    {
+                        <dt class="col-5 fw-normal text-muted">Razón social</dt>
+                        <dd class="col-7">@Model.RazonSocial</dd>
+                        <dt class="col-5 fw-normal text-muted">RUC</dt>
+                        <dd class="col-7">@Model.DocumentoCliente</dd>
+                    }
+                    else
+                    {
+                        <dt class="col-5 fw-normal text-muted">Cliente</dt>
+                        <dd class="col-7">@p.Cliente?.NombreCompleto</dd>
+                        <dt class="col-5 fw-normal text-muted">DNI</dt>
+                        <dd class="col-7">@(string.IsNullOrEmpty(Model.DocumentoCliente) ? "—" : Model.DocumentoCliente)</dd>
+                    }
+                    <dt class="col-5 fw-normal text-muted">Pedido</dt>
+                    <dd class="col-7">
+                        <a asp-controller="Pedidos" asp-action="Details" asp-route-id="@p.IdPedido">#@p.IdPedido</a>
+                        · @p.CanalAtencion?.Nombre
+                        @if (p.PedidoLocal?.NroMesa != null)
+                        {
+                            <span>· Mesa @p.PedidoLocal.NroMesa.NumeroMesa</span>
+                        }
+                    </dd>
+                    <dt class="col-5 fw-normal text-muted">Registrado por</dt>
+                    <dd class="col-7">@p.UsuarioRegistro</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header fw-semibold">Productos cobrados</div>
+    <partial name="_DetalleLineas" model="p" />
+</div>

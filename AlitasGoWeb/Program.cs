@@ -59,6 +59,7 @@ builder.Services.AddScoped<ICatalogoRepository, CatalogoRepository>();
 builder.Services.AddScoped<IInventarioRepository, InventarioRepository>();
 builder.Services.AddScoped<IPromocionRepository, PromocionRepository>();
 builder.Services.AddScoped<IAuditoriaRepository, AuditoriaRepository>();
+builder.Services.AddScoped<IPagoRepository, PagoRepository>();
 
 // Strategies
 builder.Services.AddScoped<IEstrategiaPrecio, PrecioNormal>();
@@ -76,6 +77,7 @@ builder.Services.AddScoped<IPedidoService, PedidoService>();
 builder.Services.AddScoped<IReporteService, ReporteService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ICalculadoraIgv, CalculadoraIgv>();
+builder.Services.AddScoped<IPagoService, PagoService>();
 
 // Tiempo real (SignalR, incluido en ASP.NET Core): cocina, salón y reparto se actualizan solos
 builder.Services.AddSignalR();

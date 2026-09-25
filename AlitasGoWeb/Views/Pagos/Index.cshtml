@@ -1,0 +1,119 @@
+@model HistorialPagosVM
+@{
+    ViewData["Title"] = "Historial de pagos";
+}
+
+<div class="page-header mb-4">
+    <h1 class="h3"><i class="bi bi-cash-coin" aria-hidden="true"></i> Historial de pagos</h1>
+    <p class="text-muted mb-0">Todos los cobros registrados, con su comprobante y medio de pago.</p>
+</div>
+
+<form method="get" class="card card-body mb-4">
+    <div class="row g-3 align-items-end">
+        <div class="col-6 col-lg-2">
+            <label for="desde" class="form-label small mb-1">Desde</label>
+            <input type="date" id="desde" name="desde" class="form-control" value="@Model.Desde.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="col-6 col-lg-2">
+            <label for="hasta" class="form-label small mb-1">Hasta</label>
+            <input type="date" id="hasta" name="hasta" class="form-control" value="@Model.Hasta.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="col-6 col-lg-3">
+            <label for="idTipoPago" class="form-label small mb-1">Medio de pago</label>
+            <select id="idTipoPago" name="idTipoPago" class="form-select" asp-items="Model.TiposPago">
+                <option value="">Todos</option>
+            </select>
+        </div>
+        <div class="col-6 col-lg-3">
+            <label for="tipoComprobante" class="form-label small mb-1">Comprobante</label>
+            <select id="tipoComprobante" name="tipoComprobante" class="form-select">
+                <option value="">Todos</option>
+                <option value="@TiposComprobante.Boleta" selected="@(Model.TipoComprobante == TiposComprobante.Boleta)">Boleta</option>
+                <option value="@TiposComprobante.Factura" selected="@(Model.TipoComprobante == TiposComprobante.Factura)">Factura</option>
+            </select>
+        </div>
+        <div class="col-12 col-lg-2">
+            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel" aria-hidden="true"></i> Filtrar</button>
+        </div>
+    </div>
+</form>
+
+@* Resumen del rango elegido *@
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card card-body">
+            <div class="small text-muted">Pagos</div>
+            <div class="fs-4 fw-bold">@Model.Cantidad</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card card-body">
+            <div class="small text-muted">Total cobrado</div>
+            <div class="fs-4 fw-bold">S/ @Model.TotalCobrado.ToString("0.00")</div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-6">
+        <div class="card card-body">
+            <div class="small text-muted mb-1">Por medio de pago</div>
+            @if (!Model.PorMedio.Any())
+            {
+                <div class="text-muted">—</div>
+            }
+            @foreach (var m in Model.PorMedio)
+            {
+                <div class="d-flex justify-content-between small">
+                    <span>@m.Medio (@m.Cantidad)</span>
+                    <span class="fw-semibold">S/ @m.Total.ToString("0.00")</span>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <caption class="visually-hidden">Pagos entre @Model.Desde.ToString("dd/MM/yyyy") y @Model.Hasta.ToString("dd/MM/yyyy")</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Fecha</th>
+                    <th scope="col">Comprobante</th>
+                    <th scope="col">Pedido</th>
+                    <th scope="col">Cliente</th>
+                    <th scope="col">Medio de pago</th>
+                    <th scope="col">Cobrado por</th>
+                    <th scope="col" class="text-end">Monto</th>
+                    <th scope="col"><span class="visually-hidden">Acciones</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Pagos.Any())
+                {
+                    <tr><td colspan="8" class="text-center text-muted py-4">No hay pagos para los filtros elegidos.</td></tr>
+                }
+                @foreach (var pg in Model.Pagos)
+                {
+                    <tr>
+                        <td class="text-nowrap">@pg.FechaPago.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            <span class="badge @(pg.TipoComprobante == TiposComprobante.Factura ? "bg-dark" : "bg-secondary")">@pg.TipoComprobante</span>
+                            <span class="small">@pg.NumeroComprobante</span>
+                        </td>
+                        <td>#@pg.IdPedido · @(pg.Pedido?.CanalAtencion?.Nombre)</td>
+                        <td class="small">
+                            @(pg.TipoComprobante == TiposComprobante.Factura ? pg.RazonSocial : pg.Pedido?.Cliente?.NombreCompleto)
+                        </td>
+                        <td>@pg.TipoPago?.Nombre</td>
+                        <td class="small">@pg.UsuarioCobro</td>
+                        <td class="text-end fw-semibold">S/ @pg.Monto.ToString("0.00")</td>
+                        <td class="text-end">
+                            <a asp-action="Details" asp-route-id="@pg.IdPedido" class="btn btn-sm btn-outline-primary">
+                                Ver detalle<span class="visually-hidden"> del pago del pedido @pg.IdPedido</span>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
