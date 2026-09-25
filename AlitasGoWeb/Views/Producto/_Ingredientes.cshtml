@@ -1,0 +1,106 @@
+@* Sección «Ingredientes» del formulario de nuevo producto.
+   Cada fila es una línea de la receta: cuánto insumo se descuenta por unidad vendida. *@
+@{
+    var ingredientes = (List<IngredienteVM>)ViewBag.Ingredientes;
+    var insumos = (List<SelectListItem>)ViewBag.Insumos;
+    var sabores = (List<SelectListItem>)ViewBag.Sabores;
+}
+
+<fieldset id="seccionIngredientes" class="card mb-3">
+    <legend class="card-header bg-white d-flex justify-content-between align-items-center fs-6 mb-0">
+        <span class="fw-semibold"><i class="bi bi-list-check" aria-hidden="true"></i> Ingredientes (receta)</span>
+        <button type="button" id="btnAgregarIngrediente" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar ingrediente
+        </button>
+    </legend>
+    <div class="card-body pb-0">
+        <p class="small text-muted mb-2">
+            Cuánto se descuenta del stock por <strong>cada unidad vendida</strong>.
+            Una línea con sabor solo se descuenta cuando se pide ese sabor.
+        </p>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <thead>
+                <tr>
+                    <th scope="col">Insumo</th>
+                    <th scope="col" style="width:11rem">Sabor</th>
+                    <th scope="col" style="width:8rem">Cantidad</th>
+                    <th scope="col" style="width:3rem"><span class="visually-hidden">Quitar</span></th>
+                </tr>
+            </thead>
+            <tbody id="filasIngredientes">
+                @for (var i = 0; i < ingredientes.Count; i++)
+                {
+                    var ing = ingredientes[i];
+                    <tr data-fila>
+                        <td>
+                            <select name="Ingredientes[@i].IdInsumo" id="Ingredientes_@(i)__IdInsumo" class="form-select form-select-sm" aria-label="Insumo">
+                                <option value="0">-- Selecciona --</option>
+                                @foreach (var op in insumos)
+                                {
+                                    <option value="@op.Value" selected="@(op.Value == ing.IdInsumo.ToString())">@op.Text</option>
+                                }
+                            </select>
+                        </td>
+                        <td>
+                            <select name="Ingredientes[@i].IdSabor" id="Ingredientes_@(i)__IdSabor" class="form-select form-select-sm js-sabor" aria-label="Sabor">
+                                <option value="">Todos los sabores</option>
+                                @foreach (var op in sabores)
+                                {
+                                    <option value="@op.Value" selected="@(op.Value == ing.IdSabor?.ToString())">@op.Text</option>
+                                }
+                            </select>
+                        </td>
+                        <td>
+                            <input name="Ingredientes[@i].Cantidad" id="Ingredientes_@(i)__Cantidad" type="number" step="0.01" min="0.01"
+                                   value="@(ing.Cantidad > 0 ? ing.Cantidad.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) : "")"
+                                   class="form-control form-control-sm" aria-label="Cantidad" />
+                        </td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-sm btn-outline-danger js-quitar-fila" title="Quitar">
+                                <i class="bi bi-x-lg" aria-hidden="true"></i><span class="visually-hidden">Quitar ingrediente</span>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</fieldset>
+
+<div id="avisoCombo" class="alert alert-info small mb-3" hidden>
+    <i class="bi bi-info-circle" aria-hidden="true"></i>
+    Un <strong>combo</strong> no lleva ingredientes propios: descuenta el stock de los productos que lo forman.
+</div>
+
+<template id="plantillaIngrediente">
+    <tr data-fila>
+        <td>
+            <select name="Ingredientes[__i__].IdInsumo" id="Ingredientes___i____IdInsumo" class="form-select form-select-sm" aria-label="Insumo">
+                <option value="0">-- Selecciona --</option>
+                @foreach (var op in insumos)
+                {
+                    <option value="@op.Value">@op.Text</option>
+                }
+            </select>
+        </td>
+        <td>
+            <select name="Ingredientes[__i__].IdSabor" id="Ingredientes___i____IdSabor" class="form-select form-select-sm js-sabor" aria-label="Sabor">
+                <option value="">Todos los sabores</option>
+                @foreach (var op in sabores)
+                {
+                    <option value="@op.Value">@op.Text</option>
+                }
+            </select>
+        </td>
+        <td>
+            <input name="Ingredientes[__i__].Cantidad" id="Ingredientes___i____Cantidad" type="number" step="0.01" min="0.01" class="form-control form-control-sm" aria-label="Cantidad" />
+        </td>
+        <td class="text-end">
+            <button type="button" class="btn btn-sm btn-outline-danger js-quitar-fila" title="Quitar">
+                <i class="bi bi-x-lg" aria-hidden="true"></i><span class="visually-hidden">Quitar ingrediente</span>
+            </button>
+        </td>
+    </tr>
+</template>

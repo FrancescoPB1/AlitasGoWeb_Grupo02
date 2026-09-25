@@ -1,6 +1,7 @@
 using AlitasGoWeb.Models;
 using AlitasGoWeb.Seguridad;
 using AlitasGoWeb.Services;
+using AlitasGoWeb.Services.Dtos;
 using AlitasGoWeb.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,11 +17,13 @@ namespace AlitasGoWeb.Controllers
 
         private readonly ICatalogoService _catalogo;
         private readonly IInventarioService _inventario;
+        private readonly IAltaProductoService _alta;
 
-        public ProductoController(ICatalogoService catalogo, IInventarioService inventario)
+        public ProductoController(ICatalogoService catalogo, IInventarioService inventario, IAltaProductoService alta)
         {
             _catalogo = catalogo;
             _inventario = inventario;
+            _alta = alta;
         }
 
         public async Task<IActionResult> Index() => View(await _catalogo.ListarProductosAsync(false));
@@ -28,20 +31,30 @@ namespace AlitasGoWeb.Controllers
         public async Task<IActionResult> Create()
         {
             await CargarListasAsync(false);
+            await CargarIngredientesAsync(new List<IngredienteVM> { new() });
             return View(new Producto { Activo = true });
         }
 
+        // El producto y sus ingredientes (receta) se crean juntos, en una sola transacción.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind(CamposProducto)] Producto producto)
+        public async Task<IActionResult> Create([Bind(CamposProducto)] Producto producto, List<IngredienteVM> ingredientes)
         {
             if (ModelState.IsValid)
             {
-                var r = await _catalogo.CrearProductoAsync(producto, UsuarioActual);
+                var lineas = ingredientes.Select(i => new LineaIngrediente
+                {
+                    IdInsumo = i.IdInsumo,
+                    IdSabor = i.IdSabor,
+                    Cantidad = i.Cantidad
+                }).ToList();
+
+                var r = await _alta.CrearConRecetaAsync(producto, lineas, UsuarioActual);
                 if (r.Exito) { Notificar(r); return RedirectToAction(nameof(Index)); }
                 CopiarErrores(r, ModelState);
             }
             await CargarListasAsync(false);
+            await CargarIngredientesAsync(ingredientes);
             return View(producto);
         }
 
@@ -50,6 +63,7 @@ namespace AlitasGoWeb.Controllers
             var producto = await _catalogo.ObtenerProductoAsync(id);
             if (producto == null) return NotFound();
             await CargarListasAsync(true);
+            ViewBag.RecetaActual = await _inventario.ListarRecetaAsync(id);
             return View("Create", producto);
         }
 
@@ -65,6 +79,7 @@ namespace AlitasGoWeb.Controllers
                 CopiarErrores(r, ModelState);
             }
             await CargarListasAsync(true);
+            ViewBag.RecetaActual = await _inventario.ListarRecetaAsync(id);
             return View("Create", producto);
         }
 
@@ -109,6 +124,17 @@ namespace AlitasGoWeb.Controllers
             Sabores = (await _catalogo.ListarSaboresAsync())
                 .Select(s => new SelectListItem(s.Nombre, s.IdSabor.ToString()))
         };
+
+        // Listas para la sección «Ingredientes» del formulario de nuevo producto.
+        private async Task CargarIngredientesAsync(List<IngredienteVM> ingredientes)
+        {
+            if (ingredientes.Count == 0) ingredientes.Add(new IngredienteVM());
+            ViewBag.Ingredientes = ingredientes;
+            ViewBag.Insumos = (await _inventario.ListarInsumosAsync())
+                .Select(i => new SelectListItem($"{i.Nombre} ({i.UnidadMedida})", i.IdInsumo.ToString())).ToList();
+            ViewBag.Sabores = (await _catalogo.ListarSaboresAsync())
+                .Select(s => new SelectListItem(s.Nombre, s.IdSabor.ToString())).ToList();
+        }
 
         private async Task CargarListasAsync(bool esEdicion)
         {

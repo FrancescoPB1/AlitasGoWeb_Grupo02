@@ -78,6 +78,7 @@ builder.Services.AddScoped<IReporteService, ReporteService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ICalculadoraIgv, CalculadoraIgv>();
 builder.Services.AddScoped<IPagoService, PagoService>();
+builder.Services.AddScoped<IAltaProductoService, AltaProductoService>();
 
 // Tiempo real (SignalR, incluido en ASP.NET Core): cocina, salón y reparto se actualizan solos
 builder.Services.AddSignalR();
