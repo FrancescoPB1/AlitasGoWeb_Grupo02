@@ -1,3 +1,4 @@
+using AlitasGoWeb.Data.Repositories;
 using AlitasGoWeb.Models;
 using AlitasGoWeb.Services;
 using AlitasGoWeb.Services.Dtos;
@@ -13,7 +14,8 @@ namespace AlitasGoWeb.Tests.Integracion
         private const int Guarniciones = 3;    // CategoriaProducto
         private const int Papas = 6, SalsaBbq = 3, Gaseosa = 4;   // Insumos
 
-        private static AltaProductoService Alta(Escenario e) => new(e.Catalogo, e.Inventario, e.Uow);
+        private static AltaProductoService Alta(Escenario e) =>
+            new(e.Catalogo, e.Inventario, new ComboService(new ComboRepository(e.Db), e.Catalogo, e.Auditoria, e.Uow), e.Uow);
 
         private static Producto Nuevo(string nombre, int tipo = Guarnicion, bool sabor = false) => new()
         {
@@ -127,17 +129,16 @@ namespace AlitasGoWeb.Tests.Integracion
         }
 
         [Fact]
-        public async Task Crear_Combo_NoPideIngredientesPropios()
+        public async Task Crear_Combo_ConIngredientes_SeRechaza()
         {
             using var e = new Escenario();
             var combo = Nuevo("Combo de prueba", tipo: Producto.IdTipoCombo);
 
             var r = await Alta(e).CrearConRecetaAsync(combo, new List<LineaIngrediente> { Ing(Papas, 1m) }, Admin);
 
-            Assert.True(r.Exito, string.Join(" | ", r.Errores));
-            using var ctx = e.NuevoContexto();
-            Assert.Equal(1, ctx.Productos.Count(p => p.Nombre == "Combo de prueba"));
-            Assert.Empty(ctx.Recetas.Where(x => x.IdProducto == combo.IdProducto));
+            Assert.False(r.Exito);
+            Assert.Contains(r.Errores, x => x.Contains("se arma con productos"));
+            Assert.Equal(0, ContarProductos(e, "Combo de prueba"));
         }
     }
 }

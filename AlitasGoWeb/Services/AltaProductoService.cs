@@ -11,12 +11,14 @@ namespace AlitasGoWeb.Services
     {
         private readonly ICatalogoService _catalogo;
         private readonly IInventarioService _inventario;
+        private readonly IComboService _combos;
         private readonly IUnidadDeTrabajo _uow;
 
-        public AltaProductoService(ICatalogoService catalogo, IInventarioService inventario, IUnidadDeTrabajo uow)
+        public AltaProductoService(ICatalogoService catalogo, IInventarioService inventario, IComboService combos, IUnidadDeTrabajo uow)
         {
             _catalogo = catalogo;
             _inventario = inventario;
+            _combos = combos;
             _uow = uow;
         }
 
@@ -25,13 +27,12 @@ namespace AlitasGoWeb.Services
             // Las filas que quedaron vacías en el formulario no cuentan.
             var lineas = ingredientes.Where(l => l.IdInsumo != 0 || l.Cantidad != 0).ToList();
 
-            // Un combo no tiene receta propia: consume la de los productos que lo forman.
-            if (producto.EsCombo) lineas.Clear();
-            else
-            {
-                var errores = await ValidarAsync(producto, lineas);
-                if (errores.Count > 0) return Resultado.Error(errores.ToArray());
-            }
+            // Un combo no tiene receta propia: se arma con productos (CrearComboAsync).
+            if (producto.EsCombo)
+                return Resultado.Error("Un combo se arma con productos, no con ingredientes.");
+
+            var errores = await ValidarAsync(producto, lineas);
+            if (errores.Count > 0) return Resultado.Error(errores.ToArray());
 
             try
             {
@@ -52,9 +53,42 @@ namespace AlitasGoWeb.Services
                 return ex.Resultado;   // la transacción ya se deshizo: no quedó nada a medias
             }
 
-            return Resultado.Ok(lineas.Count == 0
-                ? $"Producto «{producto.Nombre}» creado."
-                : $"Producto «{producto.Nombre}» creado con {lineas.Count} ingrediente(s) en su receta.");
+            return Resultado.Ok($"Producto «{producto.Nombre}» creado con {lineas.Count} ingrediente(s) en su receta.");
+        }
+
+        // Crea el combo y sus productos en UNA sola transacción.
+        public async Task<Resultado> CrearComboAsync(Producto combo, IList<LineaComponente> componentes, string usuario)
+        {
+            if (!combo.EsCombo) return Resultado.Error("Este producto no es de tipo Combo.");
+
+            // Las filas que quedaron vacías en el formulario no cuentan.
+            var lineas = componentes.Where(c => c.IdProducto != 0 || c.Cantidad != 0).ToList();
+            var errores = await _combos.ValidarComponentesAsync(0, lineas);
+            if (errores.Count > 0) return Resultado.Error(errores.ToArray());
+
+            // El combo no pide sabor al tomar el pedido: cada producto ya trae el suyo.
+            combo.RequiereSabor = false;
+
+            try
+            {
+                await _uow.EjecutarEnTransaccionAsync(async () =>
+                {
+                    var creado = await _catalogo.CrearProductoAsync(combo, usuario);
+                    if (!creado.Exito) throw new AltaCancelada(creado);
+
+                    foreach (var c in lineas)
+                    {
+                        var r = await _combos.AgregarComponenteAsync(combo.IdProducto, c, usuario);
+                        if (!r.Exito) throw new AltaCancelada(r);
+                    }
+                });
+            }
+            catch (AltaCancelada ex)
+            {
+                return ex.Resultado;
+            }
+
+            return Resultado.Ok($"Combo «{combo.Nombre}» creado con {lineas.Count} producto(s).");
         }
 
         private async Task<List<string>> ValidarAsync(Producto producto, List<LineaIngrediente> lineas)

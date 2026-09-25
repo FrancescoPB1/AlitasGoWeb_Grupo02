@@ -1,0 +1,100 @@
+@* Sección «Productos del combo» del formulario de nuevo producto (solo se ve si el tipo es Combo).
+   El combo descuenta el stock de las recetas de estos productos. *@
+@{
+    var componentes = (List<ComponenteVM>)ViewBag.Componentes;
+    var productos = (List<Producto>)ViewBag.ProductosCombo;
+    var sabores = (List<SelectListItem>)ViewBag.Sabores;
+}
+
+<fieldset id="seccionComponentes" class="card mb-3" hidden disabled>
+    <legend class="card-header bg-white d-flex justify-content-between align-items-center fs-6 mb-0">
+        <span class="fw-semibold"><i class="bi bi-collection" aria-hidden="true"></i> Productos del combo</span>
+        <button type="button" id="btnAgregarComponente" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar producto
+        </button>
+    </legend>
+    <div class="card-body pb-0">
+        <p class="small text-muted mb-2">
+            Qué lleva el combo. Al venderlo se descuenta del stock <strong>la receta de cada producto</strong> por la cantidad indicada.
+            Si un producto lleva sabor, elige cuál va en el combo.
+        </p>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <thead>
+                <tr>
+                    <th scope="col">Producto</th>
+                    <th scope="col" style="width:11rem">Sabor</th>
+                    <th scope="col" style="width:7rem">Cantidad</th>
+                    <th scope="col" style="width:3rem"><span class="visually-hidden">Quitar</span></th>
+                </tr>
+            </thead>
+            <tbody id="filasComponentes">
+                @for (var i = 0; i < componentes.Count; i++)
+                {
+                    var c = componentes[i];
+                    <tr data-fila>
+                        <td>
+                            <select name="Componentes[@i].IdProducto" id="Componentes_@(i)__IdProducto" class="form-select form-select-sm js-producto" aria-label="Producto">
+                                <option value="0" data-sabor="0">-- Selecciona --</option>
+                                @foreach (var p in productos)
+                                {
+                                    <option value="@p.IdProducto" data-sabor="@(p.RequiereSabor ? "1" : "0")" selected="@(p.IdProducto == c.IdProducto)">@p.Nombre · S/ @p.Precio.ToString("0.00")</option>
+                                }
+                            </select>
+                        </td>
+                        <td>
+                            <select name="Componentes[@i].IdSabor" id="Componentes_@(i)__IdSabor" class="form-select form-select-sm js-sabor-combo" aria-label="Sabor">
+                                <option value="">Sin sabor</option>
+                                @foreach (var op in sabores)
+                                {
+                                    <option value="@op.Value" selected="@(op.Value == c.IdSabor?.ToString())">@op.Text</option>
+                                }
+                            </select>
+                        </td>
+                        <td>
+                            <input name="Componentes[@i].Cantidad" id="Componentes_@(i)__Cantidad" type="number" step="1" min="1" max="20" value="@c.Cantidad"
+                                   class="form-control form-control-sm" aria-label="Cantidad" />
+                        </td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-sm btn-outline-danger js-quitar-fila" title="Quitar">
+                                <i class="bi bi-x-lg" aria-hidden="true"></i><span class="visually-hidden">Quitar producto</span>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</fieldset>
+
+<template id="plantillaComponente">
+    <tr data-fila>
+        <td>
+            <select name="Componentes[__i__].IdProducto" id="Componentes___i____IdProducto" class="form-select form-select-sm js-producto" aria-label="Producto">
+                <option value="0" data-sabor="0">-- Selecciona --</option>
+                @foreach (var p in productos)
+                {
+                    <option value="@p.IdProducto" data-sabor="@(p.RequiereSabor ? "1" : "0")">@p.Nombre · S/ @p.Precio.ToString("0.00")</option>
+                }
+            </select>
+        </td>
+        <td>
+            <select name="Componentes[__i__].IdSabor" id="Componentes___i____IdSabor" class="form-select form-select-sm js-sabor-combo" aria-label="Sabor">
+                <option value="">Sin sabor</option>
+                @foreach (var op in sabores)
+                {
+                    <option value="@op.Value">@op.Text</option>
+                }
+            </select>
+        </td>
+        <td>
+            <input name="Componentes[__i__].Cantidad" id="Componentes___i____Cantidad" type="number" step="1" min="1" max="20" value="1" class="form-control form-control-sm" aria-label="Cantidad" />
+        </td>
+        <td class="text-end">
+            <button type="button" class="btn btn-sm btn-outline-danger js-quitar-fila" title="Quitar">
+                <i class="bi bi-x-lg" aria-hidden="true"></i><span class="visually-hidden">Quitar producto</span>
+            </button>
+        </td>
+    </tr>
+</template>

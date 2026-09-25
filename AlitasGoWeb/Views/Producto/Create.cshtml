@@ -84,6 +84,7 @@
                     else
                     {
                         <partial name="_Ingredientes" />
+                        <partial name="_Componentes" />
                     }
 
                     @if (isEdit)
@@ -111,26 +112,41 @@
         <script>
             (function () {
                 AlitasGo.filasDinamicas({ cuerpo: 'filasIngredientes', plantilla: 'plantillaIngrediente', botonAgregar: 'btnAgregarIngrediente', prefijo: 'Ingredientes', alAgregar: actualizar });
+                AlitasGo.filasDinamicas({ cuerpo: 'filasComponentes', plantilla: 'plantillaComponente', botonAgregar: 'btnAgregarComponente', prefijo: 'Componentes', alAgregar: actualizar });
 
                 var tipo = document.getElementById('IdTipoProducto');
                 var requiereSabor = document.getElementById('RequiereSabor');
-                var seccion = document.getElementById('seccionIngredientes');
-                var aviso = document.getElementById('avisoCombo');
+                var ingredientes = document.getElementById('seccionIngredientes');
+                var componentes = document.getElementById('seccionComponentes');
                 var TIPO_COMBO = '@Producto.IdTipoCombo';
 
-                // Combo: no lleva ingredientes propios. Sin sabor: la columna «Sabor» no aplica.
+                // Combo: se arma con productos (no con ingredientes) y no pide sabor al tomar el pedido.
+                // Producto normal: la columna «Sabor» de los ingredientes solo aplica si el producto lleva sabor.
                 function actualizar() {
                     var esCombo = tipo.value === TIPO_COMBO;
-                    seccion.hidden = esCombo;
-                    seccion.disabled = esCombo;
-                    aviso.hidden = !esCombo;
+                    ingredientes.hidden = ingredientes.disabled = esCombo;
+                    componentes.hidden = componentes.disabled = !esCombo;
+                    if (esCombo) requiereSabor.checked = false;
+                    requiereSabor.disabled = esCombo;
+
                     document.querySelectorAll('#filasIngredientes .js-sabor').forEach(function (s) {
                         if (!requiereSabor.checked) s.value = '';
                         s.disabled = !requiereSabor.checked;
                     });
+                    // En el combo, el sabor solo se elige para los productos que lo llevan (alitas, boneless).
+                    document.querySelectorAll('#filasComponentes [data-fila]').forEach(function (fila) {
+                        var producto = fila.querySelector('.js-producto');
+                        var sabor = fila.querySelector('.js-sabor-combo');
+                        var llevaSabor = producto.selectedOptions[0] && producto.selectedOptions[0].dataset.sabor === '1';
+                        if (!llevaSabor) sabor.value = '';
+                        sabor.disabled = !esCombo || !llevaSabor;
+                    });
                 }
                 tipo.addEventListener('change', actualizar);
                 requiereSabor.addEventListener('change', actualizar);
+                document.getElementById('filasComponentes').addEventListener('change', function (e) {
+                    if (e.target.classList.contains('js-producto')) actualizar();
+                });
                 actualizar();
             })();
         </script>
