@@ -2,13 +2,21 @@
 @* Al editar: resumen de la receta del producto y acceso a la pantalla donde se modifica. *@
 @{
     var receta = (List<Receta>?)ViewBag.RecetaActual ?? new List<Receta>();
+    var componentes = (List<ComboProducto>?)ViewBag.ComponentesActuales ?? new List<ComboProducto>();
 }
 
 <div class="card mb-3">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <span class="fw-semibold"><i class="bi bi-list-check" aria-hidden="true"></i> Ingredientes (receta)</span>
-        @if (!Model.EsCombo)
+        @if (Model.EsCombo)
         {
+            <span class="fw-semibold"><i class="bi bi-collection" aria-hidden="true"></i> Productos del combo</span>
+            <a asp-action="Componentes" asp-route-id="@Model.IdProducto" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-pencil" aria-hidden="true"></i> Editar productos
+            </a>
+        }
+        else
+        {
+            <span class="fw-semibold"><i class="bi bi-list-check" aria-hidden="true"></i> Ingredientes (receta)</span>
             <a asp-action="Receta" asp-route-id="@Model.IdProducto" class="btn btn-sm btn-outline-primary">
                 <i class="bi bi-pencil" aria-hidden="true"></i> Editar receta
             </a>
@@ -16,7 +24,22 @@
     </div>
     @if (Model.EsCombo)
     {
-        <div class="card-body small text-muted">Un combo descuenta el stock de los productos que lo forman.</div>
+        if (!componentes.Any())
+        {
+            <div class="card-body small text-warning-emphasis">Este combo aún no tiene productos. Agrégaselos.</div>
+        }
+        else
+        {
+            <ul class="list-group list-group-flush small">
+                @foreach (var c in componentes)
+                {
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>@c.ProductoComponente?.Nombre <span class="text-muted">· @(c.Sabor?.Nombre ?? "Sin sabor")</span></span>
+                        <span class="fw-semibold">× @c.Cantidad</span>
+                    </li>
+                }
+            </ul>
+        }
     }
     else if (!receta.Any())
     {
