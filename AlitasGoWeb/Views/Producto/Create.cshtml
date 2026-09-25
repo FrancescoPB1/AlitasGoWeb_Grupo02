@@ -79,6 +79,15 @@
 
                     @if (isEdit)
                     {
+                        <partial name="_RecetaActual" model="Model" />
+                    }
+                    else
+                    {
+                        <partial name="_Ingredientes" />
+                    }
+
+                    @if (isEdit)
+                    {
                         <div class="form-check form-switch mb-3">
                             <input asp-for="Activo" class="form-check-input" role="switch" />
                             <label asp-for="Activo" class="form-check-label">Producto activo (visible al tomar pedidos)</label>
@@ -97,4 +106,33 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    @if (!isEdit)
+    {
+        <script>
+            (function () {
+                AlitasGo.filasDinamicas({ cuerpo: 'filasIngredientes', plantilla: 'plantillaIngrediente', botonAgregar: 'btnAgregarIngrediente', prefijo: 'Ingredientes', alAgregar: actualizar });
+
+                var tipo = document.getElementById('IdTipoProducto');
+                var requiereSabor = document.getElementById('RequiereSabor');
+                var seccion = document.getElementById('seccionIngredientes');
+                var aviso = document.getElementById('avisoCombo');
+                var TIPO_COMBO = '@Producto.IdTipoCombo';
+
+                // Combo: no lleva ingredientes propios. Sin sabor: la columna «Sabor» no aplica.
+                function actualizar() {
+                    var esCombo = tipo.value === TIPO_COMBO;
+                    seccion.hidden = esCombo;
+                    seccion.disabled = esCombo;
+                    aviso.hidden = !esCombo;
+                    document.querySelectorAll('#filasIngredientes .js-sabor').forEach(function (s) {
+                        if (!requiereSabor.checked) s.value = '';
+                        s.disabled = !requiereSabor.checked;
+                    });
+                }
+                tipo.addEventListener('change', actualizar);
+                requiereSabor.addEventListener('change', actualizar);
+                actualizar();
+            })();
+        </script>
+    }
 }

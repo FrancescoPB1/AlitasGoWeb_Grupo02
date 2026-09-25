@@ -1,0 +1,37 @@
+@model Producto
+@* Al editar: resumen de la receta del producto y acceso a la pantalla donde se modifica. *@
+@{
+    var receta = (List<Receta>?)ViewBag.RecetaActual ?? new List<Receta>();
+}
+
+<div class="card mb-3">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold"><i class="bi bi-list-check" aria-hidden="true"></i> Ingredientes (receta)</span>
+        @if (!Model.EsCombo)
+        {
+            <a asp-action="Receta" asp-route-id="@Model.IdProducto" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-pencil" aria-hidden="true"></i> Editar receta
+            </a>
+        }
+    </div>
+    @if (Model.EsCombo)
+    {
+        <div class="card-body small text-muted">Un combo descuenta el stock de los productos que lo forman.</div>
+    }
+    else if (!receta.Any())
+    {
+        <div class="card-body small text-warning-emphasis">Este producto aún no descuenta insumos. Agrégale su receta.</div>
+    }
+    else
+    {
+        <ul class="list-group list-group-flush small">
+            @foreach (var r in receta)
+            {
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>@r.Insumo?.Nombre <span class="text-muted">· @(r.Sabor?.Nombre ?? "Todos los sabores")</span></span>
+                    <span class="fw-semibold">@r.CantidadUsada.ToString("0.##") @r.UnidadMedida</span>
+                </li>
+            }
+        </ul>
+    }
+</div>
