@@ -32,6 +32,7 @@
                         @if (!esEdicion)
                         {
                             <a asp-controller="Clientes" asp-action="Create" asp-route-volverAPedido="true"
+                               asp-route-idNroMesa="@Model.IdNroMesa" asp-route-canal="@Model.IdCanalAtencion"
                                class="btn btn-outline-secondary" title="Registrar cliente nuevo">
                                 <i class="bi bi-person-plus" aria-hidden="true"></i> Nuevo
                             </a>

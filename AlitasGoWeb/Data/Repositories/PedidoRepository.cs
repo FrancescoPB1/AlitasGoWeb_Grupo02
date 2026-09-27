@@ -52,6 +52,17 @@ namespace AlitasGoWeb.Data.Repositories
             return q.OrderByDescending(p => p.Fecha).ToListAsync();
         }
 
+        // Una mesa está ocupada mientras tenga un pedido que aún no se cobra ni se anula.
+        public async Task<int?> PedidoEnCursoEnMesaAsync(int idNroMesa, int excluirIdPedido)
+        {
+            var enCurso = new[] { Estados.Recibido, Estados.EnPreparacion, Estados.Listo, Estados.Servido };
+            var id = await _ctx.PedidosLocal.AsNoTracking()
+                .Where(l => l.IdNroMesa == idNroMesa && l.IdPedido != excluirIdPedido && enCurso.Contains(l.Pedido!.IdEstadoPedido))
+                .Select(l => (int?)l.IdPedido)
+                .FirstOrDefaultAsync();
+            return id;
+        }
+
         // Cocina, salón y reparto: el más antiguo primero (FIFO).
         public Task<List<Pedido>> ListarPorEstadosAsync(IEnumerable<int> estados, int? idCanal)
         {

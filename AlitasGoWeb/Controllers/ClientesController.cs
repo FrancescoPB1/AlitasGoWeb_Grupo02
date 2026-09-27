@@ -18,17 +18,22 @@ namespace AlitasGoWeb.Controllers
 
         public async Task<IActionResult> Index() => View(await _catalogo.ListarClientesAsync());
 
-        public IActionResult Create(bool volverAPedido = false)
+        public IActionResult Create(bool volverAPedido = false, int? idNroMesa = null, int? canal = null)
         {
             ViewData["VolverAPedido"] = volverAPedido;
+            ViewData["IdNroMesa"] = idNroMesa;   // para volver al pedido con la misma mesa y canal
+            ViewData["Canal"] = canal;
             return View(new Cliente());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("DNI,Nombre,ApellidoPaterno,ApellidoMaterno")] Cliente cliente, bool volverAPedido = false)
+        public async Task<IActionResult> Create([Bind("DNI,Nombre,ApellidoPaterno,ApellidoMaterno")] Cliente cliente, bool volverAPedido = false,
+            int? idNroMesa = null, int? canal = null)
         {
             ViewData["VolverAPedido"] = volverAPedido;
+            ViewData["IdNroMesa"] = idNroMesa;
+            ViewData["Canal"] = canal;
             if (!ModelState.IsValid) return View(cliente);
 
             var r = await _catalogo.CrearClienteAsync(cliente);
@@ -40,7 +45,7 @@ namespace AlitasGoWeb.Controllers
 
             Notificar(r);
             return volverAPedido
-                ? RedirectToAction("Create", "Pedidos", new { idCliente = r.Valor })
+                ? RedirectToAction("Create", "Pedidos", new { idCliente = r.Valor, idNroMesa, canal })
                 : RedirectToAction(nameof(Index));
         }
     }

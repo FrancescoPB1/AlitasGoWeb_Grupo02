@@ -40,6 +40,10 @@ namespace AlitasGoWeb.Models
             actual is Estados.Recibido or Estados.EnPreparacion or Estados.Listo
                    or Estados.EnReparto or Estados.Servido;
 
+        // Un pedido ya cobrado (Entregado) solo lo anula el Administrador con 2FA (política AnularPedido):
+        // corrige un cobro erróneo; el comprobante queda anulado y no se repone stock.
+        public static bool PuedeAnularCobrado(int actual) => actual == Estados.Entregado;
+
         // Tabla de transiciones: "Recibido / En prep. → anular() → Reponer stock".
         // Si ya está Listo o en reparto, la comida ya se preparó: no se repone.
         public static bool DebeReponerStock(int estadoAlAnular) =>
