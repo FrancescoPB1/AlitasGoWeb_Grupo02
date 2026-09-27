@@ -150,3 +150,6 @@ body.modo-cocina .btn:focus-visible { outline: 5px solid #fff; outline-offset: 3
     body { background: #fff; }
     .card { box-shadow: none; }
 }
+
+/* Resumen de validación sin errores: no mostrar el recuadro rojo vacío. */
+.validation-summary-valid { display: none; }

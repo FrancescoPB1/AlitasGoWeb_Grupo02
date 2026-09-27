@@ -44,6 +44,10 @@
         <div class="card card-body">
             <div class="small text-muted">Pagos</div>
             <div class="fs-4 fw-bold">@Model.Cantidad</div>
+            @if (Model.Anulados > 0)
+            {
+                <div class="small text-danger">+ @Model.Anulados anulado(s), no suman</div>
+            }
         </div>
     </div>
     <div class="col-6 col-lg-3">
@@ -93,7 +97,8 @@
                 }
                 @foreach (var pg in Model.Pagos)
                 {
-                    <tr>
+                    var anulado = HistorialPagosVM.EstaAnulado(pg);
+                    <tr class="@(anulado ? "table-danger" : "")">
                         <td class="text-nowrap">@pg.FechaPago.ToString("dd/MM/yyyy HH:mm")</td>
                         <td>
                             <span class="badge @(pg.TipoComprobante == TiposComprobante.Factura ? "bg-dark" : "bg-secondary")">@pg.TipoComprobante</span>
@@ -105,7 +110,16 @@
                         </td>
                         <td>@pg.TipoPago?.Nombre</td>
                         <td class="small">@pg.UsuarioCobro</td>
-                        <td class="text-end fw-semibold">S/ @pg.Monto.ToString("0.00")</td>
+                        <td class="text-end fw-semibold">
+                            @if (anulado)
+                            {
+                                <span class="badge bg-danger me-1">Anulado</span><s>S/ @pg.Monto.ToString("0.00")</s>
+                            }
+                            else
+                            {
+                                <span>S/ @pg.Monto.ToString("0.00")</span>
+                            }
+                        </td>
                         <td class="text-end">
                             <a asp-action="Details" asp-route-id="@pg.IdPedido" class="btn btn-sm btn-outline-primary">
                                 Ver detalle<span class="visually-hidden"> del pago del pedido @pg.IdPedido</span>

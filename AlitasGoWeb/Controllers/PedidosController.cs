@@ -44,7 +44,9 @@ namespace AlitasGoWeb.Controllers
                 Pedidos = await _pedidos.ListarAsync(dia, idEstado),
                 Estados = new[] { Estados.Recibido, Estados.EnPreparacion, Estados.Listo, Estados.EnReparto,
                                   Estados.Servido, Estados.Entregado, Estados.Anulado }
-                    .Select(e => new SelectListItem(MaquinaEstadosPedido.Nombre(e), e.ToString(), e == idEstado))
+                    .Select(e => new SelectListItem(
+                        e == Estados.Entregado ? "Entregado (cobrado)" : MaquinaEstadosPedido.Nombre(e),
+                        e.ToString(), e == idEstado))
             };
         }
 

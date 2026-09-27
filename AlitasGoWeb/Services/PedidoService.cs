@@ -92,6 +92,7 @@ namespace AlitasGoWeb.Services
             // Se arma un borrador para validar antes de tocar el pedido real.
             var borrador = new Pedido
             {
+                IdPedido = pedido.IdPedido,   // para que su propia mesa no cuente como ocupada
                 Fecha = pedido.Fecha,
                 IdCliente = s.IdCliente,
                 IdCanalAtencion = pedido.IdCanalAtencion,
@@ -152,7 +153,15 @@ namespace AlitasGoWeb.Services
             {
                 var mesa = s.IdNroMesa.HasValue ? await _catalogo.ObtenerMesaAsync(s.IdNroMesa.Value) : null;
                 if (mesa == null || !mesa.Activo) errores.Add("Selecciona una mesa.");
-                else pedido.PedidoLocal = new PedidoLocal { IdNroMesa = mesa.IdNroMesa };
+                else
+                {
+                    // Una mesa ocupada no recibe otro pedido: los productos se agregan al pedido que ya tiene.
+                    var enCurso = await _repo.PedidoEnCursoEnMesaAsync(mesa.IdNroMesa, pedido.IdPedido);
+                    if (enCurso.HasValue)
+                        errores.Add($"La mesa {mesa.NumeroMesa} está ocupada con el pedido #{enCurso}. " +
+                                    "Agrega los productos a ese pedido o elige una mesa libre.");
+                    else pedido.PedidoLocal = new PedidoLocal { IdNroMesa = mesa.IdNroMesa };
+                }
             }
             else if (s.IdCanalAtencion == Canales.Delivery)
             {
@@ -276,7 +285,8 @@ namespace AlitasGoWeb.Services
             if (pedido == null) return Resultado.Error("El pedido no existe.");
 
             var estadoPrevio = pedido.IdEstadoPedido;
-            if (!MaquinaEstadosPedido.PuedeAnular(estadoPrevio))
+            var esCobrado = MaquinaEstadosPedido.PuedeAnularCobrado(estadoPrevio) && pedido.Pago != null;
+            if (!MaquinaEstadosPedido.PuedeAnular(estadoPrevio) && !esCobrado)
                 return Resultado.Error($"No se puede anular un pedido {MaquinaEstadosPedido.Nombre(estadoPrevio).ToLower()}.");
 
             var reponer = MaquinaEstadosPedido.DebeReponerStock(estadoPrevio);
@@ -289,11 +299,15 @@ namespace AlitasGoWeb.Services
                 if (reponer) await _inventario.ReponerAsync(consumo, "Anulación de pedido", pedido, usuario);
                 await _auditoria.RegistrarAsync(usuario, "Anular pedido", "Pedido", idPedido.ToString(),
                     $"Estado previo: {MaquinaEstadosPedido.Nombre(estadoPrevio)}. Total S/ {pedido.Total:0.00}. " +
-                    $"Stock repuesto: {(reponer ? "sí" : "no")}. Motivo: {motivo}");
+                    $"Stock repuesto: {(reponer ? "sí" : "no")}. " +
+                    (esCobrado ? $"Comprobante anulado: {pedido.Pago!.NumeroComprobante} (S/ {pedido.Pago.Monto:0.00}). " : "") +
+                    $"Motivo: {motivo}");
             });
 
             await NotificarAsync(pedido, EventosPedido.Anulado);
-            return Resultado.Ok($"Pedido #{idPedido} anulado.");
+            return Resultado.Ok(esCobrado
+                ? $"Pedido #{idPedido} anulado. El comprobante {pedido.Pago!.NumeroComprobante} quedó anulado."
+                : $"Pedido #{idPedido} anulado.");
         }
 
         // ======================= Cobro y comprobante =======================

@@ -13,6 +13,13 @@
     </a>
 </div>
 
+@if (p.IdEstadoPedido == Estados.Anulado)
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Comprobante anulado.</strong> El pedido se anuló después de cobrarse. Motivo: @p.MotivoAnulacion
+    </div>
+}
+
 <h1 class="h3 mb-3">
     <i class="bi bi-cash-coin" aria-hidden="true"></i>
     @Model.TipoComprobante @Model.NumeroComprobante

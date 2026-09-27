@@ -294,7 +294,7 @@ namespace AlitasGoWeb.Tests.Integracion
         }
 
         [Fact]
-        public async Task Anular_SinMotivoOYaEntregado_NoSePermite()
+        public async Task Anular_SinMotivo_NoSePermite_NiAntesNiDespuesDeCobrar()
         {
             using var e = new Escenario();
             var id = await e.RegistrarAsync(Salon(9, Linea(9, 1)));
@@ -304,7 +304,8 @@ namespace AlitasGoWeb.Tests.Integracion
             await e.LlevarAAsync(id, Estados.EnPreparacion, Estados.Listo, Estados.Servido);
             Assert.True((await e.Pedidos.CobrarAsync(id, new SolicitudCobro { IdTipoPago = 1 }, Usuario)).Exito);
 
-            Assert.False((await e.Pedidos.AnularAsync(id, "Intento tardío", Admin)).Exito);
+            // Un pedido cobrado se puede anular (Administrador + 2FA, ver CorreccionesTests), pero siempre con motivo.
+            Assert.False((await e.Pedidos.AnularAsync(id, "no", Admin)).Exito);
             Assert.Equal(Estados.Entregado, e.Leer(id).IdEstadoPedido);
         }
 
